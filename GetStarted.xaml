@@ -1,0 +1,17 @@
+﻿<Window x:Class="ProjectReinforced.GetStarted"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ProjectReinforced"
+        mc:Ignorable="d"
+        Title="Reinforced" Height="450" Width="800">
+    <Grid>
+        <Button Content="Let's start!" HorizontalAlignment="Left" Margin="270,246,0,0" VerticalAlignment="Top" Width="267" Height="89" FontSize="36" Click="Button_Click"/>
+        <ComboBox HorizontalAlignment="Left" Margin="630,381,0,0" VerticalAlignment="Top" Width="152" Height="28" SelectionChanged="ComboBox_SelectionChanged">
+            <ComboBoxItem Content="English" IsSelected="True"/>
+            <ComboBoxItem Content="한국어"/>
+        </ComboBox>
+
+    </Grid>
+</Window>
