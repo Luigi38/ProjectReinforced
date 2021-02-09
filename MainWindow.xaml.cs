@@ -38,7 +38,7 @@ namespace ProjectReinforced
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            
+            var lol = new LolClient();
 
             if (_isBegin) //GetStarted 창 표시
             {
