@@ -102,10 +102,12 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Clients\GameClients.cs" />
     <Compile Include="GetStarted.xaml.cs">
       <DependentUpon>GetStarted.xaml</DependentUpon>
     </Compile>
-    <Compile Include="LolClient.cs" />
+    <Compile Include="Clients\IGameClient.cs" />
+    <Compile Include="Clients\LolClient.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using ProjectReinforced.Clients;
+
 namespace ProjectReinforced
 {
     public enum Locale
@@ -27,19 +29,27 @@ namespace ProjectReinforced
     public partial class MainWindow : Window
     {
         private bool _isBegin = true;
-        private static Locale _locale = Locale.English;
+        public static Locale Locale { get; set; } = Locale.English;
+
+        private static GameClients _clients;
+        public static GameClients Clients
+        {
+            get
+            {
+                return _clients;
+            }
+        }
 
         public MainWindow()
         {
             InitializeComponent();
 
             this.Loaded += MainWindow_Loaded;
+            _clients = new GameClients();
         }
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            var lol = new LolClient();
-
             if (_isBegin) //GetStarted 창 표시
             {
                 this.IsEnabled = false;
@@ -51,11 +61,13 @@ namespace ProjectReinforced
                     this.IsEnabled = true;
                 };
             }
+
+            await Clients.Initialize();
         }
 
         public static void SetLocale(Locale loc)
         {
-            _locale = loc;
+            Locale = loc;
         }
     }
 }

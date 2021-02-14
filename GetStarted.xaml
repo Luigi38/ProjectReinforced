@@ -7,11 +7,38 @@
         mc:Ignorable="d"
         Title="Reinforced" Height="450" Width="800">
     <Grid>
-        <Button Content="Let's start!" HorizontalAlignment="Left" Margin="270,246,0,0" VerticalAlignment="Top" Width="267" Height="89" FontSize="36" Click="Button_Click"/>
-        <ComboBox HorizontalAlignment="Left" Margin="630,381,0,0" VerticalAlignment="Top" Width="152" Height="28" SelectionChanged="ComboBox_SelectionChanged">
-            <ComboBoxItem Content="English" IsSelected="True"/>
-            <ComboBoxItem Content="한국어"/>
-        </ComboBox>
+        <TabControl x:Name="tabControl" HorizontalAlignment="Left" Height="399" Margin="10,10,0,0" VerticalAlignment="Top" Width="772">
+            <TabItem Header="Main">
+                <Grid Background="#FFE5E5E5">
+                    <Button x:Name="Main_StartButton" Content="Let's start!" HorizontalAlignment="Left" Margin="250,200,0,0" VerticalAlignment="Top" Width="267" Height="89" FontSize="36" Click="Main_StartButton_Click"/>
+                    <ComboBox HorizontalAlignment="Left" Margin="604,333,0,0" VerticalAlignment="Top" Width="152" Height="28" SelectionChanged="ComboBox_SelectionChanged">
+                        <ComboBoxItem Content="English" IsSelected="True"/>
+                        <ComboBoxItem Content="한국어"/>
+                    </ComboBox>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Games">
+                <Grid Background="#FFE5E5E5">
+                    <Button x:Name="Games_PrevButton" Content="Previous" HorizontalAlignment="Left" Margin="544,324,0,0" VerticalAlignment="Top" Width="97" Height="37"/>
+                    <Button x:Name="Games_NextButton" Content="Next" HorizontalAlignment="Left" Margin="659,324,0,0" VerticalAlignment="Top" Width="97" Height="37" Click="Games_NextButton_Click"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Theme">
+                <Grid Background="#FFE5E5E5">
+                    <Button x:Name="Theme_PrevButton" Content="Previous" HorizontalAlignment="Left" Margin="544,324,0,0" VerticalAlignment="Top" Width="97" Height="37"/>
+                    <Button x:Name="Theme_NextButton" Content="Next" HorizontalAlignment="Left" Margin="659,324,0,0" VerticalAlignment="Top" Width="97" Height="37" Click="Theme_NextButton_Click"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Video">
+                <Grid Background="#FFE5E5E5">
+                    <Button x:Name="Video_PrevButton" Content="Previous" HorizontalAlignment="Left" Margin="544,324,0,0" VerticalAlignment="Top" Width="97" Height="37"/>
+                    <Button x:Name="Video_OKButton" Content="OK" HorizontalAlignment="Left" Margin="659,324,0,0" VerticalAlignment="Top" Width="97" Height="37" Click="Video_OKButton_Click"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Intro">
+                <Grid Background="#FFE5E5E5"/>
+            </TabItem>
+        </TabControl>
 
     </Grid>
 </Window>
