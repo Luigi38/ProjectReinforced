@@ -1,6 +1,6 @@
 # Project REINFORCED
 ![Imgur](https://i.imgur.com/mG01m8a.png)
-**Made by MineEric64, AbilityGamer06 and THEP0LLOCK**
+**Made by MineEric64, ABILITYGAMER and THEP0LLOCK**
 
 **Helped by Nextop Coding Information Security Academy**
 
