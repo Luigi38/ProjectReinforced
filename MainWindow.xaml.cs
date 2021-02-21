@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using ProjectReinforced.Clients;
+using ProjectReinforced.Recording;
+using ProjectReinforced.Types;
 
 namespace ProjectReinforced
 {
@@ -29,8 +32,9 @@ namespace ProjectReinforced
     public partial class MainWindow : Window
     {
         private bool _isBegin = true;
+
         public static Locale Locale { get; set; } = Locale.English;
-        public static GameClients Clients { get; } = new GameClients();
+        public static ClientManager Clients { get; } = new ClientManager();
 
         public MainWindow()
         {

@@ -6,9 +6,13 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.IO;
-
+using System.Threading;
+using System.Windows;
 using OpenCvSharp;
+using OpenCvSharp.Extensions;
+
 using ProjectReinforced.Types;
+using Size = OpenCvSharp.Size;
 
 namespace ProjectReinforced.Recording
 {
@@ -24,10 +28,11 @@ namespace ProjectReinforced.Recording
         }
 
         [DllImport("user32.dll", SetLastError = true)]
-        static extern bool GetWindowRect(IntPtr hWnd, ref Rectangle Rect);
+        static extern bool GetWindowRect(IntPtr hWnd, ref Rectangle rect);
 
         private static VideoWriter _videoWriter;
-        private static Dictionary<GameType, Highlight> _highlightMap = new Dictionary<GameType, Highlight>();
+        private static bool _isStopped = true;
+        private static readonly Queue<Mat> _screenShots = new Queue<Mat>();
 
         public static void Record(GameType gameType, Process game)
         {
@@ -35,33 +40,80 @@ namespace ProjectReinforced.Recording
 
             if (GetWindowRect(game.MainWindowHandle, ref rect))
             {
-                string path = Highlight.GetVideoPath(gameType, "temp");
-                FourCC fourCC = FourCC.H265;
+                int beforeSeconds = 30;
                 double fps = 30.0;
-                Size size = new Size(rect.right - rect.left, rect.bottom - rect.top);
 
-                _videoWriter = new VideoWriter(path, fourCC, fps, size);
-                Task.Run(() => Start());
+                _isStopped = false;
+                Task.Run(() => Start(rect, beforeSeconds, fps));
             }
         }
 
-        private static void Start()
+        private static void Start(Rectangle rect, int seconds, double fps)
         {
-            //https://m.blog.naver.com/hoan123432/221923826254 : VideoWriter
-            //https://stackoverflow.com/questions/51260404/continuous-capture-desktop-loop-with-opencv : Bitmap To Mat
+            int maxSize = (int)fps * seconds; //큐의 최대 크기
+            int delay = (int)fps / 1000;
+
+            while (!_isStopped)
+            {
+                if (_screenShots.Count > maxSize)
+                {
+                    Mat mat = _screenShots.Dequeue();
+                    mat.Dispose();
+                }
+
+                var bitmap = TakeScreenShot(rect);
+                Mat frame = bitmap.ToMat();
+
+                _screenShots.Enqueue(frame);
+                Thread.Sleep(delay);
+            }
         }
 
-        public static Highlight Stop(GameType gameType, int seconds)
+        public static Highlight Stop(HighlightInfo info)
         {
-            Highlight highlight = null;
+            if (_screenShots.Count <= 0) return null;
 
+            _isStopped = true;
+            Highlight highlight = new Highlight(info);
 
+            if (File.Exists(highlight.VideoPath)) File.Delete(highlight.VideoPath);
 
-            _highlightMap.TryGetValue(gameType, out highlight);
+            FourCC fourCC = FourCC.H265;
+            double fps = 30.0;
+
+            Mat baseScreen = _screenShots.Peek();
+            Size size = baseScreen.Size();
+
+            string path = Highlight.GetVideoPath(info);
+            string directoryPath = Path.GetDirectoryName(path);
+
+            if (File.Exists(path)) File.Delete(path);
+            if (directoryPath != null && !Directory.Exists(directoryPath)) Directory.CreateDirectory(directoryPath);
+
+            _videoWriter = new VideoWriter(path, fourCC, fps, size);
+
+            if (!_videoWriter.IsOpened())
+            {
+                _videoWriter.Release();
+                baseScreen.Dispose();
+
+                throw new IOException("Can't save highlight video.");
+            }
+
+            while (_screenShots.Count > 0)
+            {
+                Mat mat = _screenShots.Dequeue();
+
+                _videoWriter.Write(mat);
+            }
+
+            _videoWriter.Release();
+            baseScreen.Dispose();
+
             return highlight;
         }
 
-        public static System.Drawing.Bitmap TakeScreenshot(Rectangle rect)
+        public static System.Drawing.Bitmap TakeScreenShot(Rectangle rect)
         {
             int width = rect.right - rect.left;
             int height = rect.bottom - rect.top;

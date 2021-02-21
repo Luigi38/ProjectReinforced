@@ -8,13 +8,7 @@ namespace ProjectReinforced.Recording
     public class Highlight
     {
         public HighlightInfo Info { get; }
-        public string VideoPath
-        {
-            get
-            {
-                return GetVideoPath(Info);
-            }
-        }
+        public string VideoPath => GetVideoPath(Info);
 
         public Highlight(HighlightInfo info)
         {
@@ -28,12 +22,12 @@ namespace ProjectReinforced.Recording
 
         public static string GetVideoPath(HighlightInfo info)
         {
-            return GetVideoPath(info.Game, GetHighlightFileName(info.EventDate));
+            return GetVideoPath(info.Game, $"{GetHighlightFileName(info.EventDate)}.mp4");
         }
 
         public static string GetVideoPath(GameType gameType, string fileName)
         {
-            return Path.Combine(HighlightManager.LocalPath, gameType.ToString(), fileName, ".mp4");
+            return Path.Combine(HighlightManager.LocalPath, gameType.ToString(), fileName);
         }
     }
 }

@@ -36,18 +36,13 @@ namespace ProjectReinforced.Clients
             get
             {
                 var processes = Process.GetProcessesByName(PROCESS_NAME);
+
                 if (processes.Length > 0) return processes[0];
-                else return null;
+                return null;
             }
         }
 
-        public bool IsRunning
-        {
-            get
-            {
-                return GameProcess != null;
-            }
-        }
+        public bool IsRunning => GameProcess != null;
 
         public LolClient()
         {
@@ -58,11 +53,13 @@ namespace ProjectReinforced.Clients
         {
             this.Client = await LeagueClientApi.ConnectAsync();
             this.Client.EventHandler.Subscribe("/lol-gameflow/v1/gameflow-phase", GameFlowChanged);
+
+            // /lol-gameflow/v1/session
         }
 
         private void OnGameFlowChanged(object sender, LeagueEvent e)
         {
-            MessageBox.Show($"Status changed. '{e.Data}'");
+            Debug.WriteLine($"Status changed. '{e.Data}'");
         }
     }
 }
