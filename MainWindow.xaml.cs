@@ -30,22 +30,13 @@ namespace ProjectReinforced
     {
         private bool _isBegin = true;
         public static Locale Locale { get; set; } = Locale.English;
-
-        private static GameClients _clients;
-        public static GameClients Clients
-        {
-            get
-            {
-                return _clients;
-            }
-        }
+        public static GameClients Clients { get; } = new GameClients();
 
         public MainWindow()
         {
             InitializeComponent();
 
             this.Loaded += MainWindow_Loaded;
-            _clients = new GameClients();
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)

@@ -13,7 +13,7 @@ namespace ProjectReinforced.Clients
 {
     public class LolClient : IGameClient
     {
-        private const string PROCESS_NAME = "CLIENT_NAME";
+        private const string PROCESS_NAME = "LeagueClient";
 
         /// <summary>
         /// 롤에서 킬을 할 때 오는 이벤트
@@ -31,11 +31,21 @@ namespace ProjectReinforced.Clients
         public event LolKillEventHandler OnKill;
         public event EventHandler<LeagueEvent> GameFlowChanged;
 
+        public Process GameProcess
+        {
+            get
+            {
+                var processes = Process.GetProcessesByName(PROCESS_NAME);
+                if (processes.Length > 0) return processes[0];
+                else return null;
+            }
+        }
+
         public bool IsRunning
         {
             get
             {
-                return GameClients.IsRunning(PROCESS_NAME);
+                return GameProcess != null;
             }
         }
 

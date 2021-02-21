@@ -90,6 +90,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Recording\Highlight.cs" />
+    <Compile Include="Recording\HighlightInfo.cs" />
+    <Compile Include="Recording\HighlightManager.cs" />
+    <Compile Include="Recording\Screen.cs" />
+    <Compile Include="Types\GameType.cs" />
     <Page Include="GetStarted.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
