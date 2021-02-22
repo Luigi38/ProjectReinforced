@@ -112,6 +112,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Clients\RainbowClient.cs" />
+    <Compile Include="Others\Win32.cs" />
     <Compile Include="Recording\Highlight.cs" />
     <Compile Include="Recording\HighlightInfo.cs" />
     <Compile Include="Recording\HighlightManager.cs" />
@@ -167,5 +169,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

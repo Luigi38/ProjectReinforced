@@ -34,7 +34,6 @@ namespace ProjectReinforced
         private bool _isBegin = true;
 
         public static Locale Locale { get; set; } = Locale.English;
-        public static ClientManager Clients { get; } = new ClientManager();
 
         public MainWindow()
         {
@@ -57,7 +56,7 @@ namespace ProjectReinforced
                 };
             }
 
-            await Clients.Initialize();
+            await ClientManager.Initialize();
         }
 
         public static void SetLocale(Locale loc)

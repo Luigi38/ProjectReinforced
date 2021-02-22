@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,10 +10,13 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.Threading;
 using System.Windows;
+
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
 using ProjectReinforced.Types;
+using ProjectReinforced.Others;
+
 using Size = OpenCvSharp.Size;
 
 namespace ProjectReinforced.Recording
@@ -27,9 +32,6 @@ namespace ProjectReinforced.Recording
             public int bottom;
         }
 
-        [DllImport("user32.dll", SetLastError = true)]
-        static extern bool GetWindowRect(IntPtr hWnd, ref Rectangle rect);
-
         private static VideoWriter _videoWriter;
         private static bool _isStopped = true;
         private static readonly Queue<Mat> _screenShots = new Queue<Mat>();
@@ -38,7 +40,7 @@ namespace ProjectReinforced.Recording
         {
             Rectangle rect = new Rectangle();
 
-            if (GetWindowRect(game.MainWindowHandle, ref rect))
+            if (Win32.GetWindowRect(game.MainWindowHandle, ref rect))
             {
                 int beforeSeconds = 30;
                 double fps = 30.0;
@@ -113,24 +115,24 @@ namespace ProjectReinforced.Recording
             return highlight;
         }
 
-        public static System.Drawing.Bitmap TakeScreenShot(Rectangle rect)
+        public static Bitmap TakeScreenShot(Rectangle rect)
         {
             int width = rect.right - rect.left;
             int height = rect.bottom - rect.top;
 
-            var bmpScreenshot = new System.Drawing.Bitmap(width, height,
-                                   System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            var bmpScreenshot = new Bitmap(width, height,
+                                   PixelFormat.Format32bppArgb);
 
-            var gfxScreenshot = System.Drawing.Graphics.FromImage(bmpScreenshot);
+            var gfxScreenshot = Graphics.FromImage(bmpScreenshot);
 
             gfxScreenshot.CopyFromScreen(rect.left,
                                         rect.top,
                                         0,
                                         0,
                                         new System.Drawing.Size(width, height),
-                                        System.Drawing.CopyPixelOperation.SourceCopy);
+                                        CopyPixelOperation.SourceCopy);
 
-            return new System.Drawing.Bitmap(bmpScreenshot);
+            return new Bitmap(bmpScreenshot);
         }
     }
 }

@@ -2,55 +2,65 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+
+using ProjectReinforced.Types;
+using ProjectReinforced.Others;
 
 namespace ProjectReinforced.Clients
 {
     public class ClientManager
     {
-        [DllImport("kernel32")]
-        public static extern void CloseHandle(IntPtr hObject);
-        [DllImport("user32")]
-        public static extern IntPtr FindWindow(String lpClassName, String lpWindowName);
-        [DllImport("user32")]
-        public static extern IntPtr GetForegroundWindow();
+        public static LolClient Lol { get; } = new LolClient();
+        public static RainbowClient R6 { get; } = new RainbowClient();
 
-        public LolClient Lol { get; }
-        public int R6 { get; }
-
-        public ClientManager()
+        public IGameClient CurrentClient
         {
-            this.Lol = new LolClient();
-            this.R6 = 0;
+            get
+            {
+                foreach (IGameClient client in _clients) if (client.IsRunning && client.IsActive) return client;
+                return null;
+            }
         }
 
-        public async Task Initialize()
+        public GameType CurrentGame => CurrentClient?.GAME_TYPE ?? GameType.None;
+
+        private static readonly IGameClient[] _clients = {Lol, R6};
+
+        public static async Task Initialize()
         {
-            if (Lol.IsRunning)
+            foreach (IGameClient client in _clients)
             {
-                await Lol.InitializeClientApi();
+                if (client.IsRunning)
+                {
+                    await client.InitializeAsync();
+                }
             }
         }
 
         public static bool IsRunning(string name)
         {
-            var processes = Process.GetProcessesByName(name);
-            return processes.Length > 0;
+            return Process.GetProcessesByName(name).Length > 0;
         }
 
         public static bool IsActive(string name)
         {
-            IntPtr mwHandle = FindWindow(null, name);
-            IntPtr cwHandle = GetForegroundWindow();
+            IntPtr mwHandle = Win32.FindWindow(null, name);
+            IntPtr cwHandle = Win32.GetForegroundWindow();
 
             bool isActive = mwHandle == cwHandle;
 
-            CloseHandle(mwHandle);
-            CloseHandle(cwHandle);
+            Win32.CloseHandle(mwHandle);
+            Win32.CloseHandle(cwHandle);
 
             return isActive;
+        }
+
+        public static IGameClient GetClient(GameType game)
+        {
+            foreach (var client in _clients) if (game == client.GAME_TYPE) return client;
+            return null;
         }
     }
 }

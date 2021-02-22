@@ -9,27 +9,20 @@ using System.Windows;
 using LCUSharp;
 using LCUSharp.Websocket;
 
+using ProjectReinforced.Types;
+
 namespace ProjectReinforced.Clients
 {
+    /// <summary>
+    /// for League of Legends
+    /// </summary>
     public class LolClient : IGameClient
     {
-        private const string PROCESS_NAME = "LeagueClient";
+        //상수 선언
+        public GameType GAME_TYPE { get; } = GameType.Lol;
+        public string PROCESS_NAME { get; } = "LeagueClient";
 
-        /// <summary>
-        /// 롤에서 킬을 할 때 오는 이벤트
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        public delegate void LolKillEventHandler(object sender, EventArgs e);
-
-        public LeagueClientApi Client
-        {
-            get;
-            set;
-        }
-
-        public event LolKillEventHandler OnKill;
-        public event EventHandler<LeagueEvent> GameFlowChanged;
+        public LeagueClientApi Client { get; set; }
 
         public Process GameProcess
         {
@@ -43,13 +36,21 @@ namespace ProjectReinforced.Clients
         }
 
         public bool IsRunning => GameProcess != null;
+        public bool IsActive => ClientManager.IsActive(PROCESS_NAME);
+        public bool HasAssist => true;
+
+        public int Kills => 0;
+        public int Deaths => 0;
+        public int Assists => 0;
+
+        private event EventHandler<LeagueEvent> GameFlowChanged;
 
         public LolClient()
         {
             GameFlowChanged += OnGameFlowChanged;
         }
 
-        public async Task InitializeClientApi()
+        public async Task InitializeAsync()
         {
             this.Client = await LeagueClientApi.ConnectAsync();
             this.Client.EventHandler.Subscribe("/lol-gameflow/v1/gameflow-phase", GameFlowChanged);
