@@ -112,6 +112,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Clients\LolLiveEvent.cs" />
     <Compile Include="Clients\RainbowClient.cs" />
     <Compile Include="Others\Win32.cs" />
     <Compile Include="Recording\Highlight.cs" />
