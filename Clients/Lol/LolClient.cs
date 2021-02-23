@@ -57,14 +57,11 @@ namespace ProjectReinforced.Clients.Lol
         public event EventHandler OnKill;
         public event EventHandler OnDeath;
         public event EventHandler OnAssist;
-        public event EventHandler<LeagueEvent> GameFlowChanged;
 
         public LolSummoner CurrentSummoner { get; private set; }
 
         public LolClient()
         {
-            GameFlowChanged += OnGameFlowChanged;
-
             OnKill += LolClient_OnKill;
             OnDeath += LolClient_OnDeath;
             OnAssist += LolClient_OnAssist;
@@ -73,16 +70,9 @@ namespace ProjectReinforced.Clients.Lol
         public async Task InitializeAsync()
         {
             this.Client = await LeagueClientApi.ConnectAsync();
-            this.Client.EventHandler.Subscribe("/lol-gameflow/v1/gameflow-phase", GameFlowChanged);
 
             _ = Task.Run(RequestData);
             IsInitialized = true;
-        }
-
-        private void OnGameFlowChanged(object sender, LeagueEvent e)
-        {
-            Enum.TryParse(e.Data.ToString(), out GameflowPhaseType phase);
-            _gameflowPhase = phase;
         }
 
         private async void RequestData()
@@ -90,7 +80,7 @@ namespace ProjectReinforced.Clients.Lol
             try
             {
                 string json = await Client.RequestHandler.GetJsonResponseAsync(HttpMethod.Get, "/lol-summoner/v1/current-summoner");
-                CurrentSummoner = JObject.Parse(json).ToObject<LolSummoner>();
+                CurrentSummoner = JsonConvert.DeserializeObject<LolSummoner>(json);
 
                 using (HttpClient httpClient = new HttpClient())
                 {
@@ -105,38 +95,47 @@ namespace ProjectReinforced.Clients.Lol
 
                     while (IsRunning)
                     {
-                        if (IsActive && _gameflowPhase == GameflowPhaseType.InProgress)
+                        if (IsActive)
                         {
-                            var message = await httpClient.GetAsync("https://127.0.0.1:2999/liveclientdata/eventdata");
-                            var content = await message.Content.ReadAsStringAsync();
+                            var response = await Client.RequestHandler.GetResponseAsync<string>(HttpMethod.Get,
+                                "/lol-gameflow/v1/gameflow-phase");
 
-                            JObject obj = JObject.Parse(content);
-                            JArray array = JArray.Parse(obj["Events"]?.ToString() ?? string.Empty);
+                            Enum.TryParse(response, out GameflowPhaseType phase);
+                            _gameflowPhase = phase;
 
-                            foreach (var itemObj in array)
+                            if (_gameflowPhase == GameflowPhaseType.InProgress)
                             {
-                                string eventName = itemObj["EventName"]?.ToString();
+                                var message = await httpClient.GetAsync("https://127.0.0.1:2999/liveclientdata/eventdata");
+                                var content = await message.Content.ReadAsStringAsync();
 
-                                if (eventName == "ChampionKill")
+                                JObject obj = JObject.Parse(content);
+                                JArray array = JArray.Parse(obj["Events"]?.ToString() ?? string.Empty);
+
+                                foreach (var itemObj in array)
                                 {
-                                    var currentEvent = itemObj.ToObject<LolLiveEvent>();
+                                    string eventName = itemObj["EventName"]?.ToString();
 
-                                    if (currentEvent != null && currentEvent.EventTime > _latestEvent.EventTime)
+                                    if (eventName == "ChampionKill")
                                     {
-                                        string userName = CurrentSummoner?.displayName ?? string.Empty;
-                                        _latestEvent = currentEvent;
+                                        var currentEvent = itemObj.ToObject<LolLiveEvent>();
 
-                                        if (!string.IsNullOrEmpty(userName) && currentEvent.KillerName == userName) //킬
+                                        if (currentEvent != null && currentEvent.EventTime > _latestEvent.EventTime)
                                         {
-                                            OnKill?.Invoke(currentEvent, new EventArgs());
-                                        }
-                                        else if (!string.IsNullOrEmpty(userName) && currentEvent.VictimName == userName) //죽음
-                                        {
-                                            OnDeath?.Invoke(currentEvent, new EventArgs());
-                                        }
-                                        else if (!string.IsNullOrEmpty(userName) && currentEvent.Assisters.Contains(userName)) //어시스트
-                                        {
-                                            OnAssist?.Invoke(currentEvent, new EventArgs());
+                                            string userName = CurrentSummoner?.displayName ?? string.Empty;
+                                            _latestEvent = currentEvent;
+
+                                            if (!string.IsNullOrEmpty(userName) && currentEvent.KillerName == userName) //킬
+                                            {
+                                                OnKill?.Invoke(currentEvent, new EventArgs());
+                                            }
+                                            else if (!string.IsNullOrEmpty(userName) && currentEvent.VictimName == userName) //죽음
+                                            {
+                                                OnDeath?.Invoke(currentEvent, new EventArgs());
+                                            }
+                                            else if (!string.IsNullOrEmpty(userName) && currentEvent.Assisters.Contains(userName)) //어시스트
+                                            {
+                                                OnAssist?.Invoke(currentEvent, new EventArgs());
+                                            }
                                         }
                                     }
                                 }
