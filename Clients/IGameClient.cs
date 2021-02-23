@@ -18,11 +18,14 @@ namespace ProjectReinforced.Clients
         /// 게임 종류
         /// </summary>
         GameType GAME_TYPE { get; }
-
         /// <summary>
         /// 게임 프로세스 이름
         /// </summary>
         string PROCESS_NAME { get; }
+        /// <summary>
+        /// 게임 프로세스 제목
+        /// </summary>
+        string PROCESS_TITLE { get; }
 
         /// <summary>
         /// 그 게임이 현재 실행 되어있는가?
@@ -36,6 +39,10 @@ namespace ProjectReinforced.Clients
         /// 해당 게임이 어시스트 기능이 있는가?
         /// </summary>
         bool HasAssist { get; }
+        /// <summary>
+        /// 클라이언트 API가 초기화 되어있는가?
+        /// </summary>
+        bool IsInitialized { get; }
 
         /// <summary>
         /// 현재 게임 프로세스

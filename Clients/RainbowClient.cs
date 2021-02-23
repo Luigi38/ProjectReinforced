@@ -16,6 +16,7 @@ namespace ProjectReinforced.Clients
     {
         public GameType GAME_TYPE { get; } = GameType.R6;
         public string PROCESS_NAME { get; } = "RainbowSix";
+        public string PROCESS_TITLE { get; } = "Rainbow Six Siege";
 
         public int Client { get; set; }
 
@@ -31,6 +32,7 @@ namespace ProjectReinforced.Clients
         public bool IsRunning => GameProcess != null;
         public bool IsActive => ClientManager.IsActive(PROCESS_NAME);
         public bool HasAssist => true;
+        public bool IsInitialized { get; private set; }
 
         public int Kills => 0;
         public int Deaths => 0;
@@ -45,6 +47,8 @@ namespace ProjectReinforced.Clients
         {
             this.Client = 0;
             await Task.Delay(10);
+
+            IsInitialized = true;
         }
     }
 }

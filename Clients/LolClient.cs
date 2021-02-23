@@ -44,6 +44,7 @@ namespace ProjectReinforced.Clients
         public bool IsRunning => GameProcess != null;
         public bool IsActive => ClientManager.IsActive(PROCESS_TITLE);
         public bool HasAssist => true;
+        public bool IsInitialized { get; private set; }
 
         public int Kills { get; private set; } = 0;
         public int Deaths { get; private set; } = 0;
@@ -71,6 +72,7 @@ namespace ProjectReinforced.Clients
             this.Client.EventHandler.Subscribe("/lol-gameflow/v1/gameflow-phase", GameFlowChanged);
 
             _ = Task.Run(RequestData);
+            IsInitialized = true;
         }
 
         private void OnGameFlowChanged(object sender, LeagueEvent e)
@@ -82,6 +84,9 @@ namespace ProjectReinforced.Clients
         {
             try
             {
+                string json = await this.Client.RequestHandler.GetJsonResponseAsync(HttpMethod.Get, "/lol-summoner/v1/current-summoner");
+                Clipboard.SetText(json);
+
                 using (HttpClient httpClient = new HttpClient())
                 {
                     ServicePointManager.Expect100Continue = true;
