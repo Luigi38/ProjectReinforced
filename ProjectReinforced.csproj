@@ -169,6 +169,17 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="wallpaper.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="soft-cloudy-is-gradient-pastel-abstract-sky-background-in-sweet-color_6529-1853.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="REINFORCED__alpha.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="REINFORCED_ICON__alpha.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
