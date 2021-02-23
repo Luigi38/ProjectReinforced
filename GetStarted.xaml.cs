@@ -59,5 +59,10 @@ namespace ProjectReinforced
         {
             (tabControl.Items[4] as TabItem).IsSelected = true;
         }
+
+        private void Video_PrevButton_Copy_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
