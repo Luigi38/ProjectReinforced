@@ -49,12 +49,7 @@ namespace ProjectReinforced.Clients
             IntPtr mwHandle = Win32.FindWindow(null, name);
             IntPtr cwHandle = Win32.GetForegroundWindow();
 
-            bool isActive = mwHandle == cwHandle;
-
-            Win32.CloseHandle(mwHandle);
-            Win32.CloseHandle(cwHandle);
-
-            return isActive;
+            return mwHandle != IntPtr.Zero && mwHandle == cwHandle;
         }
 
         public static IGameClient GetClient(GameType game)
