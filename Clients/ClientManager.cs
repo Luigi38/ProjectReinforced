@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using ProjectReinforced.Clients.Lol;
+using ProjectReinforced.Clients.R6;
 using ProjectReinforced.Types;
 using ProjectReinforced.Others;
 

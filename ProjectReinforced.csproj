@@ -112,8 +112,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Clients\LolLiveEvent.cs" />
-    <Compile Include="Clients\RainbowClient.cs" />
+    <Compile Include="Clients\Lol\GameflowPhaseType.cs" />
+    <Compile Include="Clients\Lol\LolLiveEvent.cs" />
+    <Compile Include="Clients\Lol\LolSummoner.cs" />
+    <Compile Include="Clients\R6\RainbowClient.cs" />
     <Compile Include="Others\Win32.cs" />
     <Compile Include="Recording\Highlight.cs" />
     <Compile Include="Recording\HighlightInfo.cs" />
@@ -137,7 +139,7 @@
       <DependentUpon>GetStarted.xaml</DependentUpon>
     </Compile>
     <Compile Include="Clients\IGameClient.cs" />
-    <Compile Include="Clients\LolClient.cs" />
+    <Compile Include="Clients\Lol\LolClient.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

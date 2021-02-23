@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProjectReinforced.Clients
+namespace ProjectReinforced.Clients.Lol
 {
     class LolLiveEvent
     {

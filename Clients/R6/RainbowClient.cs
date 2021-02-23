@@ -5,9 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using ProjectReinforced.Clients;
 using ProjectReinforced.Types;
 
-namespace ProjectReinforced.Clients
+namespace ProjectReinforced.Clients.R6
 {
     /// <summary>
     /// for Rainbow Six Siege

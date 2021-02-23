@@ -14,9 +14,10 @@ using LCUSharp.Websocket;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+using ProjectReinforced.Clients;
 using ProjectReinforced.Types;
 
-namespace ProjectReinforced.Clients
+namespace ProjectReinforced.Clients.Lol
 {
     /// <summary>
     /// for League of Legends
@@ -50,12 +51,15 @@ namespace ProjectReinforced.Clients
         public int Deaths { get; private set; } = 0;
         public int Assists { get; private set; } = 0;
 
-        private event EventHandler<LeagueEvent> GameFlowChanged;
         private LolLiveEvent _latestEvent = LolLiveEvent.Empty;
+        private GameflowPhaseType _gameflowPhase = GameflowPhaseType.None;
 
         public event EventHandler OnKill;
         public event EventHandler OnDeath;
         public event EventHandler OnAssist;
+        public event EventHandler<LeagueEvent> GameFlowChanged;
+
+        public LolSummoner CurrentSummoner { get; private set; }
 
         public LolClient()
         {
@@ -77,15 +81,16 @@ namespace ProjectReinforced.Clients
 
         private void OnGameFlowChanged(object sender, LeagueEvent e)
         {
-            Debug.WriteLine($"Status changed. '{e.Data}'");
+            Enum.TryParse(e.Data.ToString(), out GameflowPhaseType phase);
+            _gameflowPhase = phase;
         }
 
         private async void RequestData()
         {
             try
             {
-                string json = await this.Client.RequestHandler.GetJsonResponseAsync(HttpMethod.Get, "/lol-summoner/v1/current-summoner");
-                Clipboard.SetText(json);
+                string json = await Client.RequestHandler.GetJsonResponseAsync(HttpMethod.Get, "/lol-summoner/v1/current-summoner");
+                CurrentSummoner = JObject.Parse(json).ToObject<LolSummoner>();
 
                 using (HttpClient httpClient = new HttpClient())
                 {
@@ -100,7 +105,7 @@ namespace ProjectReinforced.Clients
 
                     while (IsRunning)
                     {
-                        if (IsActive)
+                        if (IsActive && _gameflowPhase == GameflowPhaseType.InProgress)
                         {
                             var message = await httpClient.GetAsync("https://127.0.0.1:2999/liveclientdata/eventdata");
                             var content = await message.Content.ReadAsStringAsync();
@@ -118,18 +123,18 @@ namespace ProjectReinforced.Clients
 
                                     if (currentEvent != null && currentEvent.EventTime > _latestEvent.EventTime)
                                     {
-                                        string userName = "파이수학엄마";
+                                        string userName = CurrentSummoner?.displayName ?? string.Empty;
                                         _latestEvent = currentEvent;
 
-                                        if (currentEvent.KillerName == userName) //킬
+                                        if (!string.IsNullOrEmpty(userName) && currentEvent.KillerName == userName) //킬
                                         {
                                             OnKill?.Invoke(currentEvent, new EventArgs());
                                         }
-                                        else if (currentEvent.VictimName == userName) //죽음
+                                        else if (!string.IsNullOrEmpty(userName) && currentEvent.VictimName == userName) //죽음
                                         {
                                             OnDeath?.Invoke(currentEvent, new EventArgs());
                                         }
-                                        else if (currentEvent.Assisters.Contains(userName)) //어시스트
+                                        else if (!string.IsNullOrEmpty(userName) && currentEvent.Assisters.Contains(userName)) //어시스트
                                         {
                                             OnAssist?.Invoke(currentEvent, new EventArgs());
                                         }
@@ -151,13 +156,13 @@ namespace ProjectReinforced.Clients
         private void LolClient_OnKill(object sender, EventArgs e)
         {
             Kills++;
-            Debug.WriteLine("KILLED!");
+            MessageBox.Show($"KILLED! : {Kills}/{Deaths}/{Assists}");
         }
 
         private void LolClient_OnDeath(object sender, EventArgs e)
         {
             Deaths++;
-            Debug.WriteLine("DEATHED.");
+            MessageBox.Show($"DEATHED. : {Kills}/{Deaths}/{Assists}");
         }
 
         private void LolClient_OnAssist(object sender, EventArgs e)
