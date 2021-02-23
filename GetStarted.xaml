@@ -10,18 +10,11 @@
         <TabControl x:Name="tabControl" HorizontalAlignment="Left" Height="399" Margin="10,10,0,0" VerticalAlignment="Top" Width="772">
             <TabItem Header="Main">
                 <Grid Background="#FFE5E5E5">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="275*"/>
-                        <RowDefinition Height="96*"/>
-                    </Grid.RowDefinitions>
-                    <Image HorizontalAlignment="Left" Height="440" Margin="-28,0,-142,-69" VerticalAlignment="Top" Width="936" Source="wallpaper.png" Grid.RowSpan="2"/>
-                    <Button x:Name="Main_StartButton" Content="Let's start!" HorizontalAlignment="Left" Margin="250,272,0,0" VerticalAlignment="Top" Width="267" Height="89" FontSize="36" Click="Main_StartButton_Click" Grid.RowSpan="2"/>
-                    <ComboBox HorizontalAlignment="Left" Margin="591,58,0,0" VerticalAlignment="Top" Width="152" Height="28" SelectionChanged="ComboBox_SelectionChanged" Grid.Row="1">
+                    <Button x:Name="Main_StartButton" Content="Let's start!" HorizontalAlignment="Left" Margin="250,200,0,0" VerticalAlignment="Top" Width="267" Height="89" FontSize="36" Click="Main_StartButton_Click"/>
+                    <ComboBox HorizontalAlignment="Left" Margin="604,333,0,0" VerticalAlignment="Top" Width="152" Height="28" SelectionChanged="ComboBox_SelectionChanged">
                         <ComboBoxItem Content="English" IsSelected="True"/>
                         <ComboBoxItem Content="한국어"/>
                     </ComboBox>
-                    <Image HorizontalAlignment="Left" Height="102" Margin="324,67,0,0" VerticalAlignment="Top" Width="101" Source="REINFORCED_ICON__alpha.png"/>
-                    <Image Margin="251,35,252,73" Source="REINFORCED__alpha.png" Stretch="Fill" Grid.RowSpan="2"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Games">

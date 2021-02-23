@@ -7,16 +7,8 @@
         mc:Ignorable="d"
         Title="Reinforced" Height="450" Width="800">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="21*"/>
-            <RowDefinition Height="398*"/>
-        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Image HorizontalAlignment="Left" Height="558" Margin="-12,0,-149,-139" Grid.RowSpan="2" VerticalAlignment="Top" Width="953" Source="soft-cloudy-is-gradient-pastel-abstract-sky-background-in-sweet-color_6529-1853.jpg"/>
-        <Image HorizontalAlignment="Left" Height="74" Margin="10,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="73" Source="REINFORCED_ICON__alpha.png"/>
-        <Image Margin="88,-81,498,294" Source="REINFORCED__alpha.png" Stretch="Fill" Grid.RowSpan="2"/>
-        <Label Content="ALFA 1.0" HorizontalAlignment="Left" Height="30" Margin="83,45,0,0" Grid.Row="1" VerticalAlignment="Top" Width="84" FontSize="18" Foreground="#FF929292" FontFamily="Microsoft YaHei UI Light"/>
     </Grid>
 </Window>
