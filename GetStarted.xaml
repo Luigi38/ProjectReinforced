@@ -10,42 +10,29 @@
         <TabControl x:Name="tabControl" HorizontalAlignment="Left" Height="399" Margin="10,10,0,0" VerticalAlignment="Top" Width="772">
             <TabItem Header="Main">
                 <Grid Background="#FFE5E5E5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="61*"/>
-                        <ColumnDefinition Width="10*"/>
-                        <ColumnDefinition Width="695*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="4*"/>
-                        <RowDefinition Height="367*"/>
-                    </Grid.RowDefinitions>
-                    <Image HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="wallpaper.png" Grid.RowSpan="2" Grid.ColumnSpan="3"/>
-                    <Button x:Name="Main_StartButton" Content="Let's start!" HorizontalAlignment="Left" Margin="204.93,285,0,0" VerticalAlignment="Top" Width="202" Height="57" FontSize="36" Click="Main_StartButton_Click" Grid.Row="1" Background="#FF555555" Foreground="#FFCFCFCF" Grid.Column="2"/>
-                    <ComboBox HorizontalAlignment="Left" Margin="532.93,329,0,0" VerticalAlignment="Top" Width="152" Height="28" SelectionChanged="ComboBox_SelectionChanged" Grid.Row="1" BorderBrush="White" Foreground="Black" Grid.Column="2">
-                        <ComboBox.Background>
-                            <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
-                                <GradientStop Color="#FFF0F0F0" Offset="0"/>
-                                <GradientStop Color="White" Offset="1"/>
-                            </LinearGradientBrush>
-                        </ComboBox.Background>
+                    <Button x:Name="Main_StartButton" Content="Let's start!" HorizontalAlignment="Left" Margin="250,200,0,0" VerticalAlignment="Top" Width="267" Height="89" FontSize="36" Click="Main_StartButton_Click"/>
+                    <ComboBox HorizontalAlignment="Left" Margin="604,333,0,0" VerticalAlignment="Top" Width="152" Height="28" SelectionChanged="ComboBox_SelectionChanged">
                         <ComboBoxItem Content="English" IsSelected="True"/>
                         <ComboBoxItem Content="한국어"/>
                     </ComboBox>
-                    <Image HorizontalAlignment="Left" Height="271" Margin="180.93,38,0,0" Grid.Row="1" VerticalAlignment="Top" Width="311" Source="REINFORCED__alpha.png" Grid.Column="2"/>
-                    <Image HorizontalAlignment="Left" Height="114" Margin="249.93,80,0,0" Grid.Row="1" VerticalAlignment="Top" Width="110" Source="REINFORCED_ICON__alpha.png" Grid.Column="2"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Games">
-                <Image HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="wallpaper.png"/>
+                <Grid Background="#FFE5E5E5">
+                    <Button x:Name="Games_PrevButton" Content="Previous" HorizontalAlignment="Left" Margin="544,324,0,0" VerticalAlignment="Top" Width="97" Height="37"/>
+                    <Button x:Name="Games_NextButton" Content="Next" HorizontalAlignment="Left" Margin="659,324,0,0" VerticalAlignment="Top" Width="97" Height="37" Click="Games_NextButton_Click"/>
+                </Grid>
             </TabItem>
             <TabItem Header="Theme">
-                <Image HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="wallpaper.png"/>
+                <Grid Background="#FFE5E5E5">
+                    <Button x:Name="Theme_PrevButton" Content="Previous" HorizontalAlignment="Left" Margin="544,324,0,0" VerticalAlignment="Top" Width="97" Height="37"/>
+                    <Button x:Name="Theme_NextButton" Content="Next" HorizontalAlignment="Left" Margin="659,324,0,0" VerticalAlignment="Top" Width="97" Height="37" Click="Theme_NextButton_Click"/>
+                </Grid>
             </TabItem>
             <TabItem Header="Video">
                 <Grid Background="#FFE5E5E5">
                     <Button x:Name="Video_PrevButton" Content="Previous" HorizontalAlignment="Left" Margin="544,324,0,0" VerticalAlignment="Top" Width="97" Height="37"/>
                     <Button x:Name="Video_OKButton" Content="OK" HorizontalAlignment="Left" Margin="659,324,0,0" VerticalAlignment="Top" Width="97" Height="37" Click="Video_OKButton_Click"/>
-                    <Image HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="wallpaper.png"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Intro">
