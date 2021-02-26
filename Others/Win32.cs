@@ -11,13 +11,13 @@ namespace ProjectReinforced.Others
 {
     public class Win32
     {
-        [DllImport("kernel32")]
-        public static extern void CloseHandle(IntPtr hObject);
         [DllImport("user32")]
         public static extern IntPtr FindWindow(String lpClassName, String lpWindowName);
         [DllImport("user32")]
         public static extern IntPtr GetForegroundWindow();
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool GetWindowRect(IntPtr hWnd, ref Screen.Rectangle rect);
+        [DllImport("kernel32.dll")]
+        public static extern int GetProcessId(IntPtr handle);
     }
 }

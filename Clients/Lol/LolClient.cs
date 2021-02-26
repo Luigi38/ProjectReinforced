@@ -17,6 +17,7 @@ using Newtonsoft.Json.Linq;
 using ProjectReinforced.Clients;
 using ProjectReinforced.Recording;
 using ProjectReinforced.Types;
+using ProjectReinforced.Others;
 
 namespace ProjectReinforced.Clients.Lol
 {
@@ -27,12 +28,12 @@ namespace ProjectReinforced.Clients.Lol
     {
         //상수 선언
         public GameType GAME_TYPE { get; } = GameType.Lol;
-        public string PROCESS_NAME { get; } = "LeagueClient";
+        public string PROCESS_NAME { get; } = "League of Legends";
         public string PROCESS_TITLE { get; } = "League of Legends (TM) Client";
 
         public LeagueClientApi Client { get; set; }
 
-        public Process GameProcess
+        public Process GameProcess //인게임 프로세스
         {
             get
             {
@@ -82,7 +83,10 @@ namespace ProjectReinforced.Clients.Lol
             HighlightInfo info = new HighlightInfo("PentaKill", DateTime.Now, GAME_TYPE);
             Highlight kill = Screen.Stop(info);
 
-            HighlightManager.AddHighlight(info.Game, kill);
+            if (kill != null)
+            {
+                HighlightManager.AddHighlight(kill);
+            }
         }
 
         private void LolClient_OnDeath(object sender, EventArgs e)

@@ -36,13 +36,15 @@ namespace ProjectReinforced.Recording
 
         private static VideoWriter _videoWriter;
         private static readonly Queue<Mat> _screenshots = new Queue<Mat>();
-        private static bool _isWorking = false;
+        private static bool _isWorking;
 
         public static bool IsRecording { get; private set; }
         public static bool IsDisposed { get; private set; }
 
         public static async Task Record(IGameClient game)
         {
+            if (game == null) return;
+
             Rectangle rect = new Rectangle();
 
             if (Win32.GetWindowRect(game.GameProcess.MainWindowHandle, ref rect))
@@ -69,7 +71,29 @@ namespace ProjectReinforced.Recording
 
             while (IsRecording)
             {
-                if (!game.IsRunning || !game.IsActive) //게임을 껐거나 현재 활성화가 되지 않은 경우
+                if (game.IsRunning && game.IsActive) //게임을 키고 현재 플레이 중인 경우
+                {
+                    if (_screenshots.Count > maxSize)
+                    {
+                        Mat mat = _screenshots.Dequeue();
+                        mat.Dispose();
+                    }
+
+                    var bitmap = TakeScreenShot(rect);
+                    Mat frame = bitmap.ToMat();
+
+                    //해상도 조절
+                    if (resolution != 0)
+                    {
+                        Size size = new Size(1920, 1080);
+
+                        if (resolution == 720) size = new Size(1280, 720); //720p (HD)
+                        frame.Resize(size);
+                    }
+
+                    _screenshots.Enqueue(frame);
+                }
+                else if (!game.IsRunning)
                 {
                     IsRecording = false;
                     ClearScreenshots();
@@ -77,25 +101,6 @@ namespace ProjectReinforced.Recording
                     break;
                 }
 
-                if (_screenshots.Count > maxSize)
-                {
-                    Mat mat = _screenshots.Dequeue();
-                    mat.Dispose();
-                }
-
-                var bitmap = TakeScreenShot(rect);
-                Mat frame = bitmap.ToMat();
-
-                //해상도 조절
-                if (resolution != 0)
-                {
-                    Size size = new Size(1920, 1080);
-
-                    if (resolution == 720) size = new Size(1280, 720); //720p (HD)
-                    frame.Resize(size);
-                }
-
-                _screenshots.Enqueue(frame);
                 Thread.Sleep(delay);
             }
         }
