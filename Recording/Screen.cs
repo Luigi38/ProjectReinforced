@@ -14,8 +14,10 @@ using System.Windows;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
+using ProjectReinforced.Clients;
 using ProjectReinforced.Types;
 using ProjectReinforced.Others;
+using ProjectReinforced.Properties;
 
 using Size = OpenCvSharp.Size;
 
@@ -33,57 +35,85 @@ namespace ProjectReinforced.Recording
         }
 
         private static VideoWriter _videoWriter;
-        private static bool _isStopped = true;
-        private static readonly Queue<Mat> _screenShots = new Queue<Mat>();
+        private static readonly Queue<Mat> _screenshots = new Queue<Mat>();
+        private static bool _isWorking = false;
 
-        public static void Record(GameType gameType, Process game)
+        public static bool IsRecording { get; private set; }
+        public static bool IsDisposed { get; private set; }
+
+        public static async Task Record(IGameClient game)
         {
             Rectangle rect = new Rectangle();
 
-            if (Win32.GetWindowRect(game.MainWindowHandle, ref rect))
+            if (Win32.GetWindowRect(game.GameProcess.MainWindowHandle, ref rect))
             {
-                int beforeSeconds = 30;
-                double fps = 30.0;
-
-                _isStopped = false;
-                Task.Run(() => Start(rect, beforeSeconds, fps));
+                await Task.Run(() => Start(game, rect));
+            }
+            else
+            {
+                ExceptionManager.ShowError("현재 플레이 중인 게임 윈도우를 찾지 못했습니다.", "게임 윈도우를 찾지 못함", nameof(Screen),
+                    nameof(Record));
             }
         }
 
-        private static void Start(Rectangle rect, int seconds, double fps)
+        private static void Start(IGameClient game, Rectangle rect)
         {
+            int resolution = Settings.Default.Screen_Resolution;
+            int seconds = Settings.Default.Screen_RecordTimeBeforeSave;
+            double fps = Settings.Default.Screen_Fps;
+
             int maxSize = (int)fps * seconds; //큐의 최대 크기
             int delay = (int)fps / 1000;
 
-            while (!_isStopped)
+            IsRecording = true;
+
+            while (IsRecording)
             {
-                if (_screenShots.Count > maxSize)
+                if (!game.IsRunning || !game.IsActive) //게임을 껐거나 현재 활성화가 되지 않은 경우
                 {
-                    Mat mat = _screenShots.Dequeue();
+                    IsRecording = false;
+                    ClearScreenshots();
+
+                    break;
+                }
+
+                if (_screenshots.Count > maxSize)
+                {
+                    Mat mat = _screenshots.Dequeue();
                     mat.Dispose();
                 }
 
                 var bitmap = TakeScreenShot(rect);
                 Mat frame = bitmap.ToMat();
 
-                _screenShots.Enqueue(frame);
+                //해상도 조절
+                if (resolution != 0)
+                {
+                    Size size = new Size(1920, 1080);
+
+                    if (resolution == 720) size = new Size(1280, 720); //720p (HD)
+                    frame.Resize(size);
+                }
+
+                _screenshots.Enqueue(frame);
                 Thread.Sleep(delay);
             }
         }
 
         public static Highlight Stop(HighlightInfo info)
         {
-            if (_screenShots.Count <= 0) return null;
+            if (_screenshots.Count <= 0) return null;
+            if (!IsRecording) return null;
 
-            _isStopped = true;
+            IsRecording = false;
+            _isWorking = true;
+
             Highlight highlight = new Highlight(info);
+            FourCC fcc = FourCC.FromString(Settings.Default.Screen_FourCC);
 
             if (File.Exists(highlight.VideoPath)) File.Delete(highlight.VideoPath);
 
-            FourCC fourCC = FourCC.H265;
-            double fps = 30.0;
-
-            Mat baseScreen = _screenShots.Peek();
+            Mat baseScreen = _screenshots.Peek();
             Size size = baseScreen.Size();
 
             string path = Highlight.GetVideoPath(info);
@@ -92,25 +122,31 @@ namespace ProjectReinforced.Recording
             if (File.Exists(path)) File.Delete(path);
             if (directoryPath != null && !Directory.Exists(directoryPath)) Directory.CreateDirectory(directoryPath);
 
-            _videoWriter = new VideoWriter(path, fourCC, fps, size);
+            _videoWriter = new VideoWriter(path, fcc, Settings.Default.Screen_Fps, size);
 
             if (!_videoWriter.IsOpened())
             {
                 _videoWriter.Release();
                 baseScreen.Dispose();
 
-                throw new IOException("Can't save highlight video.");
+                ExceptionManager.ShowError("하이라이트 영상을 저장할 수 없습니다.", "저장할 수 없음", nameof(Screen), nameof(Stop));
             }
 
-            while (_screenShots.Count > 0)
+            while (_screenshots.Count > 0)
             {
-                Mat mat = _screenShots.Dequeue();
+                Mat mat = _screenshots.Dequeue();
+
+                if (mat.Size() != size)
+                {
+                    mat.Resize(size);
+                }
 
                 _videoWriter.Write(mat);
             }
 
             _videoWriter.Release();
             baseScreen.Dispose();
+            _isWorking = true;
 
             return highlight;
         }
@@ -133,6 +169,39 @@ namespace ProjectReinforced.Recording
                                         CopyPixelOperation.SourceCopy);
 
             return new Bitmap(bmpScreenshot);
+        }
+
+        public static async Task WorkForRecordingAsync()
+        {
+            while (!IsDisposed)
+            {
+                if (!IsRecording && !_isWorking)
+                {
+                    IGameClient activeClient = ClientManager.CurrentClient;
+                    await Record(activeClient);
+                }
+
+                await Task.Delay(1000);
+            }
+        }
+
+        public static void Dispose()
+        {
+            IsDisposed = true;
+
+            ClearScreenshots();
+        }
+
+        /// <summary>
+        /// 메모리에 있던 스크린샷들을 제거합니다.
+        /// </summary>
+        private static void ClearScreenshots()
+        {
+            while (_screenshots.Count > 0)
+            {
+                Mat mat = _screenshots.Dequeue();
+                mat.Dispose();
+            }
         }
     }
 }

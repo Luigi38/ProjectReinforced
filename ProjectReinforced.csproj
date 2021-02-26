@@ -69,6 +69,9 @@
     <Reference Include="OpenCvSharp.Extensions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=6adad1e807fea099, processorArchitecture=MSIL">
       <HintPath>packages\OpenCvSharp4.4.5.1.20210210\lib\net461\OpenCvSharp.Extensions.dll</HintPath>
     </Reference>
+    <Reference Include="SevenZipSharp, Version=1.3.283.0, Culture=neutral, PublicKeyToken=c8ff6ba0184838bb, processorArchitecture=MSIL">
+      <HintPath>packages\Squid-Box.SevenZipSharp.1.3.283\lib\net45\SevenZipSharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
@@ -116,6 +119,7 @@
     <Compile Include="Clients\Lol\LolLiveEvent.cs" />
     <Compile Include="Clients\Lol\LolSummoner.cs" />
     <Compile Include="Clients\R6\RainbowClient.cs" />
+    <Compile Include="Others\ExceptionManager.cs" />
     <Compile Include="Others\Win32.cs" />
     <Compile Include="Recording\Highlight.cs" />
     <Compile Include="Recording\HighlightInfo.cs" />

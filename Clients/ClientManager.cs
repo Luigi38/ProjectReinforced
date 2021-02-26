@@ -17,7 +17,7 @@ namespace ProjectReinforced.Clients
         public static LolClient Lol { get; } = new LolClient();
         public static RainbowClient R6 { get; } = new RainbowClient();
 
-        public IGameClient CurrentClient
+        public static IGameClient CurrentClient
         {
             get
             {
@@ -26,7 +26,7 @@ namespace ProjectReinforced.Clients
             }
         }
 
-        public GameType CurrentGame => CurrentClient?.GAME_TYPE ?? GameType.None;
+        public static GameType CurrentGame => CurrentClient?.GAME_TYPE ?? GameType.None;
 
         private static readonly IGameClient[] _clients = {Lol, R6};
 

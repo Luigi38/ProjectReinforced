@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -40,6 +42,7 @@ namespace ProjectReinforced
             InitializeComponent();
 
             this.Loaded += MainWindow_Loaded;
+            this.Closing += MainWindow_Closing;
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -57,6 +60,14 @@ namespace ProjectReinforced
             }
 
             await ClientManager.Initialize();
+
+            HighlightManager.LocalPath = $@"{AppContext.BaseDirectory}\Workspace"; //임시 폴더
+            _ = Task.Run(Screen.WorkForRecordingAsync); //녹화 스레드
+        }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            Screen.Dispose();
         }
 
         public static void SetLocale(Locale loc)

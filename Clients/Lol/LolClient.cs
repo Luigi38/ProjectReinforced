@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using ProjectReinforced.Clients;
+using ProjectReinforced.Recording;
 using ProjectReinforced.Types;
 
 namespace ProjectReinforced.Clients.Lol
@@ -75,7 +76,13 @@ namespace ProjectReinforced.Clients.Lol
         private void LolClient_OnKill(object sender, EventArgs e)
         {
             Kills++;
+
             MessageBox.Show($"KILLED! : {Kills}/{Deaths}/{Assists}");
+
+            HighlightInfo info = new HighlightInfo("PentaKill", DateTime.Now, GAME_TYPE);
+            Highlight kill = Screen.Stop(info);
+
+            HighlightManager.AddHighlight(info.Game, kill);
         }
 
         private void LolClient_OnDeath(object sender, EventArgs e)
