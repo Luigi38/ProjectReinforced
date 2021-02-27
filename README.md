@@ -1,10 +1,10 @@
 # Project REINFORCED
 ![Imgur](https://i.imgur.com/mG01m8a.png)
-Made by **MineEric64**, **abilitygamer06**
+Made by **MineEric64**, **Juyong**
 
 UI by **THEP0LLOCK** and **BullsEye**
 
-**Helped by Nextop Coding Information Security Academy**
+Helped by **Nextop Coding Information Security Academy**
 
 # Introduction
 게이머들을 위한 하이라이트 캡처 프로그램입니다.
