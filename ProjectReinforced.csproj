@@ -132,13 +132,13 @@
     <Compile Include="Clients\Lol\LolLiveEvent.cs" />
     <Compile Include="Clients\Lol\LolSummoner.cs" />
     <Compile Include="Clients\R6\RainbowClient.cs" />
+    <Compile Include="Extensions\MathExtension.cs" />
     <Compile Include="Others\ExceptionManager.cs" />
     <Compile Include="Others\Win32.cs" />
     <Compile Include="Recording\Highlight.cs" />
     <Compile Include="Recording\HighlightInfo.cs" />
     <Compile Include="Recording\HighlightManager.cs" />
     <Compile Include="Recording\Screen.cs" />
-    <Compile Include="Recording\ScreenStateLogger.cs" />
     <Compile Include="Types\GameType.cs" />
     <Page Include="GetStarted.xaml">
       <SubType>Designer</SubType>

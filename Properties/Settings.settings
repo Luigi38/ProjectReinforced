@@ -8,10 +8,10 @@
     <Setting Name="Screen_Fps" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">30</Value>
     </Setting>
-    <Setting Name="Screen_RecordTimeBeforeSave" Type="System.Int32" Scope="User">
+    <Setting Name="Screen_RecordTimeBeforeHighlight" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">15</Value>
     </Setting>
-    <Setting Name="Screen_RecordTimeAfterSave" Type="System.Int32" Scope="User">
+    <Setting Name="Screen_RecordTimeAfterHighlight" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">5</Value>
     </Setting>
     <Setting Name="Screen_FourCC" Type="System.String" Scope="User">

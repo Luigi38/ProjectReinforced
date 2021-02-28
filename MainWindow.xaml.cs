@@ -20,8 +20,7 @@ using System.Windows.Shapes;
 using ProjectReinforced.Clients;
 using ProjectReinforced.Recording;
 using ProjectReinforced.Types;
-
-using OpenCvSharp.Extensions;
+using ProjectReinforced.Extensions;
 
 namespace ProjectReinforced
 {
@@ -65,13 +64,9 @@ namespace ProjectReinforced
             await ClientManager.Initialize();
 
             HighlightManager.LocalPath = $@"{AppContext.BaseDirectory}\Workspace"; //임시 폴더
-            //_ = Task.Run(Screen.WorkForRecordingAsync); //녹화 스레드
+            _ = Task.Run(Screen.WorkForRecordingAsync); //녹화 스레드
 
-            Screen.RecordForDebug();
-            await Task.Delay(10000);
-
-            bool recorded = Screen.StopForDebug(GameType.R6);
-            MessageBox.Show($"OK : {recorded}");
+            await Screen.RecordTestForDebugAsync(10000, 60.0, 15, 5);
         }
 
         private void MainWindow_Closing(object sender, CancelEventArgs e)

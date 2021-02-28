@@ -14,9 +14,12 @@ using System.Windows;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
+using DesktopDuplication;
+
 using ProjectReinforced.Clients;
 using ProjectReinforced.Types;
 using ProjectReinforced.Others;
+using ProjectReinforced.Extensions;
 using ProjectReinforced.Properties;
 
 using Size = OpenCvSharp.Size;
@@ -35,9 +38,9 @@ namespace ProjectReinforced.Recording
         }
 
         private static VideoWriter _videoWriter;
+        private static Queue<Mat> _screenshots = new Queue<Mat>();
 
-        private static readonly ScreenStateLogger _screenStateLogger = new ScreenStateLogger();
-        private static readonly Queue<Mat> _screenshots = new Queue<Mat>();
+        private static DesktopDuplicator _dd = new DesktopDuplicator(0);
 
         private static bool _isWorking;
 
@@ -68,37 +71,57 @@ namespace ProjectReinforced.Recording
         private static void Start(IGameClient game, Rectangle rect)
         {
             int resolution = Settings.Default.Screen_Resolution;
-            int seconds = Settings.Default.Screen_RecordTimeBeforeSave;
-            double fps = Settings.Default.Screen_Fps;
+            int seconds = Settings.Default.Screen_RecordTimeBeforeHighlight;
+            int fps = Settings.Default.Screen_Fps;
 
-            int maxSize = (int)fps * seconds; //큐의 최대 크기
-            int delay = (int)fps / 1000;
+            bool isUnfixed = fps == 0;
+            //큐의 최대 크기 (고정되지 않은 프레임 방식이면 무한)
+            int maxSize = !isUnfixed ? fps * seconds : -1;
+            int frameDelay = !isUnfixed ? 1000 / fps : 0;
 
+            Stopwatch sw = new Stopwatch();
             IsRecording = true;
 
             while (IsRecording)
             {
+                sw.Start();
+
                 if (game.IsRunning && game.IsActive) //게임을 키고 현재 플레이 중인 경우
                 {
-                    if (_screenshots.Count > maxSize)
+                    if (!isUnfixed && _screenshots.Count > maxSize)
                     {
                         Mat mat = _screenshots.Dequeue();
                         mat.Dispose();
                     }
 
-                    //var bitmap = Screenshot(rect);
-                    Mat frame = null;
-
-                    //해상도 조절
-                    if (resolution != 0)
+                    if (!isUnfixed && _screenshots.Count > maxSize)
                     {
-                        Size size = new Size(1920, 1080);
-
-                        if (resolution == 720) size = new Size(1280, 720); //720p (HD)
-                        frame.Resize(size);
+                        Mat mat = _screenshots.Dequeue();
+                        mat.Dispose();
                     }
 
-                    _screenshots.Enqueue(frame);
+                    Mat frame = Screenshot(rect)?.ToMat();
+
+                    if (frame != null)
+                    {
+                        //해상도 조절
+                        if (resolution != 0)
+                        {
+                            Size size = new Size(1920, 1080);
+
+                            if (resolution == 720) size = new Size(1280, 720); //720p (HD)
+                            frame.Resize(size);
+                        }
+
+                        _screenshots.Enqueue(frame);
+                        sw.Stop();
+
+                        //원래 쉬어야 하는 delay 보다 이미 지나간 시간을 빼줘야 함. 안그러면 delay 시간 만큼 더 쉬게 됨.
+                        int delay = frameDelay - (int)sw.ElapsedMilliseconds;
+                        if (delay > 0) Thread.Sleep(delay);
+
+                        sw.Reset();
+                    }
                 }
                 else if (!game.IsRunning)
                 {
@@ -107,15 +130,24 @@ namespace ProjectReinforced.Recording
 
                     break;
                 }
-
-                Cv2.WaitKey(delay);
+                else if (!game.IsActive)
+                {
+                    if (_screenshots.Count > 0) ClearScreenshots();
+                    Thread.Sleep(30);
+                }
             }
+
+            IsRecording = false;
         }
 
         public static Highlight Stop(HighlightInfo info)
         {
-            if (_screenshots.Count <= 0) return null;
-            if (!IsRecording) return null;
+            if (_screenshots.Count <= 0 || !IsRecording) return null;
+
+            int secondsAfterHighlight = Settings.Default.Screen_RecordTimeAfterHighlight;
+            bool isUnfixed = Settings.Default.Screen_Fps == 0;
+
+            if (secondsAfterHighlight > 0) Thread.Sleep(secondsAfterHighlight * 1000);
 
             IsRecording = false;
             _isWorking = true;
@@ -127,14 +159,18 @@ namespace ProjectReinforced.Recording
 
             Mat baseScreen = _screenshots.Peek();
             Size size = baseScreen.Size();
+            double fps = Settings.Default.Screen_Fps;
 
             string path = Highlight.GetVideoPath(info);
             string directoryPath = Path.GetDirectoryName(path);
 
+            //고정되지 않은 프레임 방식 (저장된 프레임의 수에 따라서 fps가 결정됨)
+            if (isUnfixed) fps = (double)_screenshots.Count / (Settings.Default.Screen_RecordTimeBeforeHighlight + secondsAfterHighlight);
+
             if (File.Exists(path)) File.Delete(path);
             if (directoryPath != null && !Directory.Exists(directoryPath)) Directory.CreateDirectory(directoryPath);
 
-            _videoWriter = new VideoWriter(path, fcc, Settings.Default.Screen_Fps, size);
+            _videoWriter = new VideoWriter(path, fcc, fps, size);
 
             if (!_videoWriter.IsOpened())
             {
@@ -163,8 +199,9 @@ namespace ProjectReinforced.Recording
 
             return highlight;
         }
-
-        public static void RecordForDebug()
+        #region Debugging Functions
+        #region Record Function
+        public static void RecordForDebug(double fps, int seconds)
         {
             Rectangle rect = new Rectangle //1920x1080 해상도
             {
@@ -174,56 +211,67 @@ namespace ProjectReinforced.Recording
                 bottom = 1080
             };
 
-            _ = Task.Run(() => StartForDebug(rect));
+            _ = Task.Run(() => StartForDebug(rect, fps, seconds));
         }
-
-        private static void StartForDebug(Rectangle rect)
+        #endregion
+        #region Start Function
+        private static void StartForDebug(Rectangle rect, double fps, int seconds)
         {
-            int seconds = 15; //하이라이트가 나오기 전의 15초 전을 저장
-            double fps = 30.0; //30프레임
-
-            int maxSize = (int)fps * seconds; //큐의 최대 크기
-            int delay = (int)fps / 1000;
+            bool isUnfixed = fps.EqualsPrecision(0.0);
+            //큐의 최대 크기 (고정되지 않은 프레임 방식이면 무한)
+            int maxSize = !isUnfixed ? (int)fps * seconds : -1;
+            int frameDelay = !isUnfixed ? 1000 / (int) fps : 0;
 
             int width = rect.right - rect.left;
             int height = rect.bottom - rect.top;
 
             Stopwatch sw = new Stopwatch();
+            IsRecording = true;
             
-            _screenStateLogger.ScreenRefreshed += (object s, Bitmap data) =>
+            while (IsRecording)
             {
-                sw.Stop();
-                Trace.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}");
+                sw.Start();
 
-                if (_screenshots.Count > maxSize)
+                if (!isUnfixed && _screenshots.Count > maxSize)
                 {
                     Mat mat = _screenshots.Dequeue();
                     mat.Dispose();
                 }
 
-                Mat frame = data.ToMat();
-                Cv2.ImShow("TEST", frame);
-                Cv2.WaitKey();
+                Mat frame = Screenshot(rect)?.ToMat();
 
-                _screenshots.Enqueue(frame);
+                if (frame != null)
+                {
+                    _screenshots.Enqueue(frame);
+                }
 
-                sw.Reset();
+                sw.Stop();
+
+                //원래 쉬어야 하는 delay 보다 이미 지나간 시간을 빼줘야 함. 안그러면 delay 시간 만큼 더 쉬게 됨.
+                int delay = frameDelay - (int) sw.ElapsedMilliseconds;
                 sw.Start();
-            };
+                if (delay > 0) Thread.Sleep(delay);
 
-            IsRecording = true;
-            _screenStateLogger.Start();
+                Trace.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}");
+                sw.Reset();
+            }
         }
-
-        public static bool StopForDebug(GameType game)
+        #endregion
+        #region Stop Function
+        public static bool StopForDebug(GameType game, double fps, int secondsBeforeHighlight, int secondsAfterHighlight, out int frameCount)
         {
-            if (_screenshots.Count <= 0) return false;
-            if (!IsRecording) return false;
+            if (_screenshots.Count <= 0 || !IsRecording)
+            {
+                frameCount = 0;
+                return false;
+            }
+;
+            bool isUnfixed = fps.EqualsPrecision(0.0);
+            if (secondsAfterHighlight > 0) Thread.Sleep(secondsAfterHighlight * 1000);
 
             IsRecording = false;
-            _screenStateLogger.Stop();
-
             _isWorking = true;
+            frameCount = _screenshots.Count;
 
             Mat baseScreen = _screenshots.Peek();
             Size size = baseScreen.Size();
@@ -231,7 +279,8 @@ namespace ProjectReinforced.Recording
             string path = Highlight.GetVideoPath(game, $"{Highlight.GetHighlightFileName(DateTime.Now)}.mp4");
             string directoryPath = Path.GetDirectoryName(path);
 
-            double fps = 30.0; //30프레임
+            //고정되지 않은 프레임 방식 (저장된 프레임의 수에 따라서 fps가 결정됨)
+            if (isUnfixed) fps = (double) _screenshots.Count / (secondsBeforeHighlight + secondsAfterHighlight);
 
             if (File.Exists(path)) File.Delete(path);
             if (directoryPath != null && !Directory.Exists(directoryPath)) Directory.CreateDirectory(directoryPath);
@@ -265,6 +314,18 @@ namespace ProjectReinforced.Recording
 
             return true;
         }
+        #endregion
+        #region Record Test Function
+        public static async Task RecordTestForDebugAsync(int waitMilliseconds, double fps, int secondsBeforeHighlight, int secondsAfterHighlight)
+        {
+            RecordForDebug(fps, secondsBeforeHighlight);
+            await Task.Delay(waitMilliseconds);
+
+            bool recorded = StopForDebug(GameType.R6, fps, secondsBeforeHighlight, secondsAfterHighlight, out var frameCount);
+            MessageBox.Show($"OK : {recorded}, Count : {frameCount}");
+        }
+        #endregion
+        #endregion
 
         public static Bitmap Screenshot(Rectangle rect)
         {
@@ -272,10 +333,24 @@ namespace ProjectReinforced.Recording
             int height = rect.bottom - rect.top;
 
             //https://stackoverflow.com/questions/52930179/fully-real-time-screen-capture-in-window-8-10-technology-without-delay/52935517
-            //https://luckygg.tistory.com/221
-            //https://stackoverflow.com/questions/6812068/c-sharp-which-is-the-fastest-way-to-take-a-screen-shot
+            ////https://stackoverflow.com/questions/6812068/c-sharp-which-is-the-fastest-way-to-take-a-screen-shot
 
-            return null;
+            //C++ Wrapper
+            //https://luckygg.tistory.com/221
+
+            //DirectX / Direct3D
+            //https://github.com/spazzarama/Direct3DHook
+            //https://spazzarama.com/2011/03/14/c-screen-capture-and-overlays-for-direct3d-9-10-and-11-using-api-hooks/
+
+            //SlimDX
+            //https://gamedev.net/forums/topic/662374-slimdx-to-take-fullscreen-game-screenshots/5190656/
+
+            DesktopFrame frame = _dd.GetLatestFrame();
+            Bitmap frameBitmap = frame?.DesktopImage;
+
+            //비트맵을 특정한 영역으로 자르기
+            if (frameBitmap != null && frameBitmap.Width == width && frameBitmap.Height == height) return frameBitmap;
+            return frameBitmap?.Clone(new System.Drawing.Rectangle(rect.left, rect.top, width, height), frameBitmap.PixelFormat);
         }
 
         public static Bitmap Screenshot(int x, int y, int width, int height)
@@ -309,6 +384,7 @@ namespace ProjectReinforced.Recording
             IsDisposed = true;
 
             ClearScreenshots();
+            _screenshots = null;
         }
 
         /// <summary>

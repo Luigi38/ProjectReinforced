@@ -50,24 +50,24 @@ namespace ProjectReinforced.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("15")]
-        public int Screen_RecordTimeBeforeSave {
+        public int Screen_RecordTimeBeforeHighlight {
             get {
-                return ((int)(this["Screen_RecordTimeBeforeSave"]));
+                return ((int)(this["Screen_RecordTimeBeforeHighlight"]));
             }
             set {
-                this["Screen_RecordTimeBeforeSave"] = value;
+                this["Screen_RecordTimeBeforeHighlight"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("5")]
-        public int Screen_RecordTimeAfterSave {
+        public int Screen_RecordTimeAfterHighlight {
             get {
-                return ((int)(this["Screen_RecordTimeAfterSave"]));
+                return ((int)(this["Screen_RecordTimeAfterHighlight"]));
             }
             set {
-                this["Screen_RecordTimeAfterSave"] = value;
+                this["Screen_RecordTimeAfterHighlight"] = value;
             }
         }
         
