@@ -19,5 +19,8 @@ namespace ProjectReinforced.Others
         public static extern bool GetWindowRect(IntPtr hWnd, ref Screen.Rectangle rect);
         [DllImport("kernel32.dll")]
         public static extern int GetProcessId(IntPtr handle);
+
+        [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
+        public static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
     }
 }

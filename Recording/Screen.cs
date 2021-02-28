@@ -35,7 +35,10 @@ namespace ProjectReinforced.Recording
         }
 
         private static VideoWriter _videoWriter;
+
+        private static readonly ScreenStateLogger _screenStateLogger = new ScreenStateLogger();
         private static readonly Queue<Mat> _screenshots = new Queue<Mat>();
+
         private static bool _isWorking;
 
         public static bool IsRecording { get; private set; }
@@ -46,6 +49,10 @@ namespace ProjectReinforced.Recording
             if (game == null) return;
 
             Rectangle rect = new Rectangle();
+            rect.left = 0;
+            rect.right = 1920;
+            rect.top = 0;
+            rect.bottom = 1080;
 
             if (Win32.GetWindowRect(game.GameProcess.MainWindowHandle, ref rect))
             {
@@ -79,8 +86,8 @@ namespace ProjectReinforced.Recording
                         mat.Dispose();
                     }
 
-                    var bitmap = TakeScreenShot(rect);
-                    Mat frame = bitmap.ToMat();
+                    //var bitmap = Screenshot(rect);
+                    Mat frame = null;
 
                     //해상도 조절
                     if (resolution != 0)
@@ -101,7 +108,7 @@ namespace ProjectReinforced.Recording
                     break;
                 }
 
-                Thread.Sleep(delay);
+                Cv2.WaitKey(delay);
             }
         }
 
@@ -135,6 +142,7 @@ namespace ProjectReinforced.Recording
                 baseScreen.Dispose();
 
                 ExceptionManager.ShowError("하이라이트 영상을 저장할 수 없습니다.", "저장할 수 없음", nameof(Screen), nameof(Stop));
+                return null;
             }
 
             while (_screenshots.Count > 0)
@@ -151,29 +159,135 @@ namespace ProjectReinforced.Recording
 
             _videoWriter.Release();
             baseScreen.Dispose();
-            _isWorking = true;
+            _isWorking = false;
 
             return highlight;
         }
 
-        public static Bitmap TakeScreenShot(Rectangle rect)
+        public static void RecordForDebug()
+        {
+            Rectangle rect = new Rectangle //1920x1080 해상도
+            {
+                left = 0,
+                top = 0,
+                right = 1920,
+                bottom = 1080
+            };
+
+            _ = Task.Run(() => StartForDebug(rect));
+        }
+
+        private static void StartForDebug(Rectangle rect)
+        {
+            int seconds = 15; //하이라이트가 나오기 전의 15초 전을 저장
+            double fps = 30.0; //30프레임
+
+            int maxSize = (int)fps * seconds; //큐의 최대 크기
+            int delay = (int)fps / 1000;
+
+            int width = rect.right - rect.left;
+            int height = rect.bottom - rect.top;
+
+            Stopwatch sw = new Stopwatch();
+            
+            _screenStateLogger.ScreenRefreshed += (object s, Bitmap data) =>
+            {
+                sw.Stop();
+                Trace.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}");
+
+                if (_screenshots.Count > maxSize)
+                {
+                    Mat mat = _screenshots.Dequeue();
+                    mat.Dispose();
+                }
+
+                Mat frame = data.ToMat();
+                Cv2.ImShow("TEST", frame);
+                Cv2.WaitKey();
+
+                _screenshots.Enqueue(frame);
+
+                sw.Reset();
+                sw.Start();
+            };
+
+            IsRecording = true;
+            _screenStateLogger.Start();
+        }
+
+        public static bool StopForDebug(GameType game)
+        {
+            if (_screenshots.Count <= 0) return false;
+            if (!IsRecording) return false;
+
+            IsRecording = false;
+            _screenStateLogger.Stop();
+
+            _isWorking = true;
+
+            Mat baseScreen = _screenshots.Peek();
+            Size size = baseScreen.Size();
+
+            string path = Highlight.GetVideoPath(game, $"{Highlight.GetHighlightFileName(DateTime.Now)}.mp4");
+            string directoryPath = Path.GetDirectoryName(path);
+
+            double fps = 30.0; //30프레임
+
+            if (File.Exists(path)) File.Delete(path);
+            if (directoryPath != null && !Directory.Exists(directoryPath)) Directory.CreateDirectory(directoryPath);
+
+            _videoWriter = new VideoWriter(path, FourCC.H265, fps, size);
+
+            if (!_videoWriter.IsOpened())
+            {
+                _videoWriter.Release();
+                baseScreen.Dispose();
+
+                ExceptionManager.ShowError("하이라이트 영상을 저장할 수 없습니다.", "저장할 수 없음", nameof(Screen), nameof(Stop));
+                return false;
+            }
+
+            while (_screenshots.Count > 0)
+            {
+                Mat mat = _screenshots.Dequeue();
+
+                if (mat.Size() != size)
+                {
+                    mat.Resize(size);
+                }
+
+                _videoWriter.Write(mat);
+            }
+
+            _videoWriter.Release();
+            baseScreen.Dispose();
+            _isWorking = false;
+
+            return true;
+        }
+
+        public static Bitmap Screenshot(Rectangle rect)
         {
             int width = rect.right - rect.left;
             int height = rect.bottom - rect.top;
 
-            var bmpScreenshot = new Bitmap(width, height,
-                                   PixelFormat.Format32bppArgb);
+            //https://stackoverflow.com/questions/52930179/fully-real-time-screen-capture-in-window-8-10-technology-without-delay/52935517
+            //https://luckygg.tistory.com/221
+            //https://stackoverflow.com/questions/6812068/c-sharp-which-is-the-fastest-way-to-take-a-screen-shot
 
-            var gfxScreenshot = Graphics.FromImage(bmpScreenshot);
+            return null;
+        }
 
-            gfxScreenshot.CopyFromScreen(rect.left,
-                                        rect.top,
-                                        0,
-                                        0,
-                                        new System.Drawing.Size(width, height),
-                                        CopyPixelOperation.SourceCopy);
-
-            return new Bitmap(bmpScreenshot);
+        public static Bitmap Screenshot(int x, int y, int width, int height)
+        {
+            Rectangle rect = new Rectangle
+            {
+                left = x,
+                top = y,
+                right = x + width,
+                bottom = y + height
+            };
+            return Screenshot(rect);
         }
 
         public static async Task WorkForRecordingAsync()
