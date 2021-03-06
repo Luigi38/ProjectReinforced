@@ -14,8 +14,6 @@ using System.Windows;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
-using DesktopDuplication;
-
 using ProjectReinforced.Clients;
 using ProjectReinforced.Types;
 using ProjectReinforced.Others;
@@ -35,12 +33,17 @@ namespace ProjectReinforced.Recording
             public int top;
             public int right;
             public int bottom;
+
+            public static implicit operator System.Drawing.Rectangle(Rectangle rect)
+            {
+                return new System.Drawing.Rectangle(rect.left, rect.top, rect.right, rect.bottom);
+            }
         }
 
         private static VideoWriter _videoWriter;
         private static Queue<Mat> _screenshots = new Queue<Mat>();
 
-        private static DesktopDuplicator _dd = new DesktopDuplicator(0);
+
 
         private static bool _isWorking;
 
@@ -51,11 +54,13 @@ namespace ProjectReinforced.Recording
         {
             if (game == null) return;
 
-            Rectangle rect = new Rectangle();
-            rect.left = 0;
-            rect.right = 1920;
-            rect.top = 0;
-            rect.bottom = 1080;
+            Rectangle rect = new Rectangle
+            {
+                left = 0,
+                right = 1920,
+                top = 0,
+                bottom = 1080
+            };
 
             if (Win32.GetWindowRect(game.GameProcess.MainWindowHandle, ref rect))
             {
@@ -68,7 +73,7 @@ namespace ProjectReinforced.Recording
             }
         }
 
-        private static void Start(IGameClient game, Rectangle rect)
+        private static void Start(IGameClient game, System.Drawing.Rectangle bounds)
         {
             int resolution = Settings.Default.Screen_Resolution;
             int seconds = Settings.Default.Screen_RecordTimeBeforeHighlight;
@@ -79,20 +84,15 @@ namespace ProjectReinforced.Recording
             int maxSize = !isUnfixed ? fps * seconds : -1;
             int frameDelay = !isUnfixed ? 1000 / fps : 0;
 
-            Stopwatch sw = new Stopwatch();
+            var sw = new Stopwatch();
             IsRecording = true;
 
+            //스크린샷 시 실행 되는 함수 (지역 함수 이용)
             while (IsRecording)
             {
-                sw.Start();
-
                 if (game.IsRunning && game.IsActive) //게임을 키고 현재 플레이 중인 경우
                 {
-                    if (!isUnfixed && _screenshots.Count > maxSize)
-                    {
-                        Mat mat = _screenshots.Dequeue();
-                        mat.Dispose();
-                    }
+                    sw.Start();
 
                     if (!isUnfixed && _screenshots.Count > maxSize)
                     {
@@ -100,44 +100,38 @@ namespace ProjectReinforced.Recording
                         mat.Dispose();
                     }
 
-                    Mat frame = Screenshot(rect)?.ToMat();
+                    //프레임 가져오기
+                    Mat frame = Screenshot(bounds).ToMat();
 
-                    if (frame != null)
+                    //해상도 조절
+                    if (resolution != 0)
                     {
-                        //해상도 조절
-                        if (resolution != 0)
-                        {
-                            Size size = new Size(1920, 1080);
+                        Size size = new Size(1920, 1080);
 
-                            if (resolution == 720) size = new Size(1280, 720); //720p (HD)
-                            frame.Resize(size);
-                        }
-
-                        _screenshots.Enqueue(frame);
-                        sw.Stop();
-
-                        //원래 쉬어야 하는 delay 보다 이미 지나간 시간을 빼줘야 함. 안그러면 delay 시간 만큼 더 쉬게 됨.
-                        int delay = frameDelay - (int)sw.ElapsedMilliseconds;
-                        if (delay > 0) Thread.Sleep(delay);
-
-                        sw.Reset();
+                        if (resolution == 720) size = new Size(1280, 720); //720p (HD)
+                        frame.Resize(size);
                     }
+
+                    _screenshots.Enqueue(frame);
+
+                    sw.Stop();
+
+                    int delay = Math.Max(0, frameDelay - (int)sw.ElapsedMilliseconds);
+                    if (delay > 0) Thread.Sleep(delay);
+
+                    sw.Reset();
                 }
                 else if (!game.IsRunning)
                 {
                     IsRecording = false;
                     ClearScreenshots();
-
-                    break;
                 }
                 else if (!game.IsActive)
                 {
-                    if (_screenshots.Count > 0) ClearScreenshots();
+                    ClearScreenshots();
                     Thread.Sleep(30);
                 }
             }
-
-            IsRecording = false;
         }
 
         public static Highlight Stop(HighlightInfo info)
@@ -210,24 +204,22 @@ namespace ProjectReinforced.Recording
                 right = 1920,
                 bottom = 1080
             };
+            Size size = new Size(1920, 1080);
 
-            _ = Task.Run(() => StartForDebug(rect, fps, seconds));
+            _ = Task.Run(() => StartForDebug(rect, size, fps, seconds));
         }
         #endregion
         #region Start Function
-        private static void StartForDebug(Rectangle rect, double fps, int seconds)
+        private static void StartForDebug(Rectangle bounds, Size size, double fps, int seconds)
         {
-            bool isUnfixed = fps.EqualsPrecision(0.0);
+            bool isUnfixed = (int)fps == 0;
             //큐의 최대 크기 (고정되지 않은 프레임 방식이면 무한)
             int maxSize = !isUnfixed ? (int)fps * seconds : -1;
-            int frameDelay = !isUnfixed ? 1000 / (int) fps : 0;
-
-            int width = rect.right - rect.left;
-            int height = rect.bottom - rect.top;
+            int frameDelay = !isUnfixed ? 1000 / (int)fps : 0;
 
             Stopwatch sw = new Stopwatch();
             IsRecording = true;
-            
+
             while (IsRecording)
             {
                 sw.Start();
@@ -238,21 +230,23 @@ namespace ProjectReinforced.Recording
                     mat.Dispose();
                 }
 
-                Mat frame = Screenshot(rect)?.ToMat();
+                //프레임을 가져와서 특정 창의 크기로 이미지 자르기
+                Mat frame = Screenshot(bounds).ToMat();
 
-                if (frame != null)
+                //해상도 조절
+                if (frame.Size() != size)
                 {
-                    _screenshots.Enqueue(frame);
+                    frame.Resize(size);
                 }
 
+                _screenshots.Enqueue(frame);
+
                 sw.Stop();
+                Trace.WriteLine($"{sw.ElapsedMilliseconds}ms elapsed.");
 
-                //원래 쉬어야 하는 delay 보다 이미 지나간 시간을 빼줘야 함. 안그러면 delay 시간 만큼 더 쉬게 됨.
-                int delay = frameDelay - (int) sw.ElapsedMilliseconds;
-                sw.Start();
-                if (delay > 0) Thread.Sleep(delay);
+                int delay = Math.Max(0, frameDelay - (int)sw.ElapsedMilliseconds);
+                //if (delay > 0) Thread.Sleep(delay);
 
-                Trace.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}");
                 sw.Reset();
             }
         }
@@ -327,42 +321,35 @@ namespace ProjectReinforced.Recording
         #endregion
         #endregion
 
-        public static Bitmap Screenshot(Rectangle rect)
+        public static Bitmap Screenshot()
         {
-            int width = rect.right - rect.left;
-            int height = rect.bottom - rect.top;
+            return Screenshot(System.Drawing.Rectangle.Empty);
+        }
 
-            //https://stackoverflow.com/questions/52930179/fully-real-time-screen-capture-in-window-8-10-technology-without-delay/52935517
-            ////https://stackoverflow.com/questions/6812068/c-sharp-which-is-the-fastest-way-to-take-a-screen-shot
+        public static Bitmap Screenshot(System.Drawing.Rectangle bounds)
+        {
+            Bitmap frame = null;
 
-            //C++ Wrapper
-            //https://luckygg.tistory.com/221
 
-            //DirectX / Direct3D
-            //https://github.com/spazzarama/Direct3DHook
-            //https://spazzarama.com/2011/03/14/c-screen-capture-and-overlays-for-direct3d-9-10-and-11-using-api-hooks/
 
-            //SlimDX
-            //https://gamedev.net/forums/topic/662374-slimdx-to-take-fullscreen-game-screenshots/5190656/
-
-            DesktopFrame frame = _dd.GetLatestFrame();
-            Bitmap frameBitmap = frame?.DesktopImage;
-
-            //비트맵을 특정한 영역으로 자르기
-            if (frameBitmap != null && frameBitmap.Width == width && frameBitmap.Height == height) return frameBitmap;
-            return frameBitmap?.Clone(new System.Drawing.Rectangle(rect.left, rect.top, width, height), frameBitmap.PixelFormat);
+            return CropImage(frame, bounds);
         }
 
         public static Bitmap Screenshot(int x, int y, int width, int height)
         {
-            Rectangle rect = new Rectangle
-            {
-                left = x,
-                top = y,
-                right = x + width,
-                bottom = y + height
-            };
-            return Screenshot(rect);
+            return Screenshot(new System.Drawing.Rectangle(x, y, width, height));
+        }
+
+        /// <summary>
+        /// 비트맵을 특정한 영역으로 자릅니다.
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="rect"></param>
+        /// <returns></returns>
+        private static Bitmap CropImage(Bitmap image, System.Drawing.Rectangle rect)
+        {
+            if (rect == System.Drawing.Rectangle.Empty || (image != null && image.Width == rect.Width && image.Height == rect.Height)) return image;
+            return image?.Clone(rect, image.PixelFormat);
         }
 
         public static async Task WorkForRecordingAsync()
