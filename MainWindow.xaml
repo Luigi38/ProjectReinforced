@@ -7,8 +7,27 @@
         mc:Ignorable="d"
         Title="Reinforced" Height="450" Width="800">
     <Grid>
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="10,4" StartPoint="10,6">
+                <GradientStop Color="#FF120E2E"/>
+                <GradientStop Color="#FF4C36DA" Offset="1"/>
+                <GradientStop Color="#FF0E2342" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
+        <StackPanel HorizontalAlignment="Left" Height="419" VerticalAlignment="Top" Width="158" Background="#FF0B1D36" Margin="636,0,-2,0">
+            <DockPanel Height="92" LastChildFill="False" Background="#FF091527"/>
+            <DockPanel Height="327" LastChildFill="False"/>
+        </StackPanel>
+        <StackPanel HorizontalAlignment="Left" Height="23" Margin="636,396,0,0" VerticalAlignment="Top" Width="156" RenderTransformOrigin="0.425,0.275" Background="#FF17273C">
+            <TextBlock x:Name="Version" TextWrapping="Wrap" Height="24" Text="Beta 37" FontSize="18" FontFamily="Microsoft YaHei UI" Foreground="#FF0B1B30" HorizontalAlignment="Right"/>
+        </StackPanel>
+        <Image x:Name="reinforced_text" HorizontalAlignment="Left" Height="146" Margin="638,-18,-14,0" VerticalAlignment="Top" Width="168" Source="Resources/REINFORCED_alpha.png"/>
+        <Image x:Name="reinforced_logo" HorizontalAlignment="Left" Height="56" Margin="683,10,0,0" VerticalAlignment="Top" Width="54" Source="Resources/REINFORCED_ICON_alpha.png"/>
+        <Button x:Name="Gallery_button" Content="Gallery" HorizontalAlignment="Left" VerticalAlignment="Top" Width="156" Margin="636,111,0,0" Background="#FF0B1D36" BorderBrush="#FF1D447A" Foreground="White" BorderThickness="2" Height="24"/>
+        <Button x:Name="Home_button" Content="Home" HorizontalAlignment="Left" VerticalAlignment="Top" Width="156" Margin="636,91,0,0" Background="#FF0B1D36" BorderBrush="#FF1D447A" Foreground="White" BorderThickness="2" Height="24"/>
+        <Button x:Name="Home_button1" Content="Setting" HorizontalAlignment="Left" VerticalAlignment="Top" Width="156" Margin="636,133,0,0" Background="#FF0B1D36" BorderBrush="#FF1D447A" Foreground="White" BorderThickness="2" Height="24"/>
     </Grid>
 </Window>
