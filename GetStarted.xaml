@@ -19,8 +19,8 @@
                         <RowDefinition Height="4*"/>
                         <RowDefinition Height="367*"/>
                     </Grid.RowDefinitions>
-                    <Image HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="Resources/wallpaper-gradient.png" Grid.RowSpan="2" Grid.ColumnSpan="3"/>
-                    <Button x:Name="MainStartButton" Content="Let's start!" HorizontalAlignment="Left" Margin="209,284,0,0" VerticalAlignment="Top" Width="218" Height="61" FontSize="36" Click="Main_StartButton_Click" Grid.Row="1" Background="{x:Null}" Foreground="White" Grid.Column="2" BorderThickness="5"/>
+                    <Image x:Name="Wallpaper_Main_" HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="Resources/wallpaper-gradient.png" Grid.RowSpan="2" Grid.ColumnSpan="3"/>
+                    <Button x:Name="MainStartButton" Content="Let's start!" HorizontalAlignment="Left" Margin="209,284,0,0" VerticalAlignment="Top" Width="218" Height="58" FontSize="36" Click="Main_StartButton_Click" Grid.Row="1" Background="{x:Null}" Foreground="White" Grid.Column="2" BorderThickness="5"/>
                     <ComboBox HorizontalAlignment="Left" Margin="532.93,329,0,0" VerticalAlignment="Top" Width="152" Height="28" SelectionChanged="ComboBox_SelectionChanged" Grid.Row="1" BorderBrush="#FF363636" Foreground="#FF363636" Grid.Column="2" Background="#FF363636">
                         <ComboBoxItem Content="English" IsSelected="True"/>
                         <ComboBoxItem Content="한국어"/>
@@ -31,21 +31,21 @@
             </TabItem>
             <TabItem Header="Games">
                 <Grid Background="#FFE5E5E5">
-                    <Image HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="Resources/wallpaper-gradient.png"/>
+                    <Image x:Name="Wallpaper_Games_" HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="Resources/wallpaper-gradient.png"/>
                     <Button x:Name="GamesPrevButton" Content="Previous" HorizontalAlignment="Left" Margin="544,324,0,0" VerticalAlignment="Top" Width="97" Height="37"/>
                     <Button x:Name="GamesNextButton" Content="Next" HorizontalAlignment="Left" Margin="659,324,0,0" VerticalAlignment="Top" Width="97" Height="37" Click="Video_OKButton_Click"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Theme">
                 <Grid Background="#FFE5E5E5">
-                    <Image HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="Resources/wallpaper-gradient.png"/>
+                    <Image x:Name="Wallpaper_Theme_" HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="Resources/wallpaper-gradient.png"/>
                     <Button x:Name="ThemePrevButton" Content="Previous" HorizontalAlignment="Left" Margin="544,324,0,0" VerticalAlignment="Top" Width="97" Height="37"/>
                     <Button x:Name="ThemeOKButton" Content="Next" HorizontalAlignment="Left" Margin="659,324,0,0" VerticalAlignment="Top" Width="97" Height="37" Click="Video_OKButton_Click"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Video">
                 <Grid Background="#FFE5E5E5">
-                    <Image HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="Resources/wallpaper-gradient.png"/>
+                    <Image x:Name="Wallpaper_Video_" HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="Resources/wallpaper-gradient.png"/>
                     <Button x:Name="Video_PrevButton" Content="Previous" HorizontalAlignment="Left" Margin="544,324,0,0" VerticalAlignment="Top" Width="97" Height="37"/>
                     <Button x:Name="VideoOkButton" Content="OK" HorizontalAlignment="Left" Margin="659,324,0,0" VerticalAlignment="Top" Width="97" Height="37" Click="Video_OKButton_Click"/>
                 </Grid>
@@ -59,7 +59,7 @@
                         <TranslateTransform/>
                     </TransformGroup>
                 </TabItem.RenderTransform>
-                <Grid Background="#FFE5E5E5"/>
+                <Image x:Name="Wallpaper_Intro_" HorizontalAlignment="Left" Height="528" Margin="-132,-27,-135,-130" VerticalAlignment="Top" Width="1033" Source="Resources/wallpaper-gradient.png"/>
             </TabItem>
         </TabControl>
 

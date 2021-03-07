@@ -211,6 +211,7 @@
     <Content Include="OpenCvSharpExtern.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Resource Include="settings_89381.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Windows\" />
