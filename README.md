@@ -1,6 +1,6 @@
 # Project REINFORCED
 ![Imgur](https://i.imgur.com/mG01m8a.png)
-Made by **MineEric64** and **Juyong** (Team Prodigy on Nextop-OpenCV)
+Made by **MineEric64** and **Juyong** (Team Prodigy on [Nextop-OpenCV](https://github.com/Nextop-OpenCV))
 
 UI by **THEP0LLOCK** and **BullsEye**
 
