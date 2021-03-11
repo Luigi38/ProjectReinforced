@@ -66,7 +66,6 @@ namespace ProjectReinforced
             HighlightManager.LocalPath = $@"{AppContext.BaseDirectory}\Workspace"; //임시 폴더
             _ = Task.Run(Screen.WorkForRecordingAsync); //녹화 스레드
 
-            await Screen.RecordTestForDebugAsync(10000, 60.0, 15, 5);
             this.SizeToContent = SizeToContent.WidthAndHeight;
         }
 

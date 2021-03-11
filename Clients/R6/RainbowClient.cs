@@ -32,16 +32,14 @@ namespace ProjectReinforced.Clients.R6
 
         public bool IsRunning => GameProcess != null;
         public bool IsActive => ClientManager.IsActive(PROCESS_NAME);
-        public bool HasAssist => true;
         public bool IsInitialized { get; private set; }
 
-        public int Kills => 0;
-        public int Deaths => 0;
-        public int Assists => 0;
+        public Kda Kda { get; private set; }
 
         public RainbowClient()
         {
             this.Client = 0;
+            this.Kda = new Kda(true);
         }
 
         public async Task InitializeAsync()

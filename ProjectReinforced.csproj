@@ -130,6 +130,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Clients\Kda.cs" />
     <Compile Include="Clients\Lol\GameflowPhaseType.cs" />
     <Compile Include="Clients\Lol\LolLiveEvent.cs" />
     <Compile Include="Clients\Lol\LolSummoner.cs" />
