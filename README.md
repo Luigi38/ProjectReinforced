@@ -13,8 +13,8 @@ Helped by **Nextop Coding Information Security Academy**
 이 프로젝트는 넥스탑 코딩 정보보안 학원에서 시작되었습니다.
 
 ## Words that developers want to tell
-* 제작자 **MineEric64**: 솔직히 이번 프로젝트의 난이도는 제 개인 프로젝트인 [유니컨버터](https://github.com/MineEric64/UniConverter-Project)에서
-구현해야 하는 기능이 있는데 그 기능을 구현하려면 미분을 배워야 하는 난감한 상황 이후로 2번 째로 어려웠습니다. 유니컨버터를 만들 때 당시 저는 중2였기 때문에
+* 제작자 **MineEric64**: 솔직히 이번 프로젝트의 난이도는, 제 개인 프로젝트인 [유니컨버터](https://github.com/MineEric64/UniConverter-Project)에서
+구현해야 하는 기능이 있는데 그 기능을 구현하려면 미분을 배워야 하는 난감한 상황 이후로 2번째로 어려웠습니다. 유니컨버터를 만들 때 당시 저는 중2였기 때문에
 연립방정식 문제를 푸는 것도 어려운데 미분을 배우려면 얼마나 더 어렵겠습니까,
 
 아무튼 이 프로젝트를 만들면서 처음으로는 게임 이벤트를 구현해야할 때 정말 난감했습니다. 심지어 구글링을 해도 나오는 자료가 없으니깐 저의 뇌피셜만으로
