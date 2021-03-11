@@ -14,6 +14,8 @@ using System.Windows;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
+using DesktopDuplication;
+
 using ProjectReinforced.Clients;
 using ProjectReinforced.Types;
 using ProjectReinforced.Others;
@@ -41,9 +43,8 @@ namespace ProjectReinforced.Recording
         }
 
         private static VideoWriter _videoWriter;
-        private static Queue<Mat> _screenshots = new Queue<Mat>();
-
-
+        private static Queue<ScreenCaptured> _screenshots = new Queue<ScreenCaptured>();
+        private static DesktopDuplicator _dd = new DesktopDuplicator(0);
 
         private static bool _isWorking;
 
@@ -84,42 +85,44 @@ namespace ProjectReinforced.Recording
             int maxSize = !isUnfixed ? fps * seconds : -1;
             int frameDelay = !isUnfixed ? 1000 / fps : 0;
 
-            var sw = new Stopwatch();
+            ScreenCaptured lastScreen = null;
             IsRecording = true;
 
-            //스크린샷 시 실행 되는 함수 (지역 함수 이용)
+            //스크린샷 시 실행 되는 코드
             while (IsRecording)
             {
                 if (game.IsRunning && game.IsActive) //게임을 키고 현재 플레이 중인 경우
                 {
-                    sw.Start();
-
                     if (!isUnfixed && _screenshots.Count > maxSize)
                     {
-                        Mat mat = _screenshots.Dequeue();
-                        mat.Dispose();
+                        ScreenCaptured sc = _screenshots.Dequeue();
+                        sc.Frame.Dispose();
                     }
 
                     //프레임 가져오기
-                    Mat frame = Screenshot(bounds).ToMat();
+                    Mat frame = Screenshot(bounds)?.ToMat();
 
-                    //해상도 조절
-                    if (resolution != 0)
+                    if (frame != null)
                     {
-                        Size size = new Size(1920, 1080);
+                        //해상도 조절
+                        if (resolution != 0)
+                        {
+                            Size size = new Size(1920, 1080);
 
-                        if (resolution == 720) size = new Size(1280, 720); //720p (HD)
-                        frame.Resize(size);
+                            if (resolution == 720) size = new Size(1280, 720); //720p (HD)
+                            frame.Resize(size);
+                        }
+
+                        lastScreen = new ScreenCaptured(frame);
+                        _screenshots.Enqueue(lastScreen);
                     }
-
-                    _screenshots.Enqueue(frame);
-
-                    sw.Stop();
-
-                    int delay = Math.Max(0, frameDelay - (int)sw.ElapsedMilliseconds);
-                    if (delay > 0) Thread.Sleep(delay);
-
-                    sw.Reset();
+                    else
+                    {
+                        if (lastScreen != null)
+                        {
+                            lastScreen.CountToUse++;
+                        }
+                    }
                 }
                 else if (!game.IsRunning)
                 {
@@ -151,7 +154,7 @@ namespace ProjectReinforced.Recording
 
             if (File.Exists(highlight.VideoPath)) File.Delete(highlight.VideoPath);
 
-            Mat baseScreen = _screenshots.Peek();
+            Mat baseScreen = _screenshots.Peek().Frame;
             Size size = baseScreen.Size();
             double fps = Settings.Default.Screen_Fps;
 
@@ -175,16 +178,23 @@ namespace ProjectReinforced.Recording
                 return null;
             }
 
+            ScreenCaptured lastScreen = null;
+
             while (_screenshots.Count > 0)
             {
-                Mat mat = _screenshots.Dequeue();
-
-                if (mat.Size() != size)
+                if (lastScreen == null || lastScreen.CountToUse == 0)
                 {
-                    mat.Resize(size);
+                    lastScreen?.Frame?.Dispose(); //lastScreen 변수가 null이면 이 함수는 실행되지 않음
+                    lastScreen = _screenshots.Dequeue();
                 }
 
-                _videoWriter.Write(mat);
+                if (lastScreen.Frame.Size() != size)
+                {
+                    lastScreen.Frame.Resize(size);
+                }
+
+                _videoWriter.Write(lastScreen.Frame);
+                lastScreen.CountToUse--;
             }
 
             _videoWriter.Release();
@@ -206,7 +216,7 @@ namespace ProjectReinforced.Recording
             };
             Size size = new Size(1920, 1080);
 
-            _ = Task.Run(() => StartForDebug(rect, size, fps, seconds));
+            Task.Run(() => StartForDebug(rect, size, fps, seconds));
         }
         #endregion
         #region Start Function
@@ -217,6 +227,8 @@ namespace ProjectReinforced.Recording
             int maxSize = !isUnfixed ? (int)fps * seconds : -1;
             int frameDelay = !isUnfixed ? 1000 / (int)fps : 0;
 
+            ScreenCaptured lastScreen = null;
+
             Stopwatch sw = new Stopwatch();
             IsRecording = true;
 
@@ -226,28 +238,37 @@ namespace ProjectReinforced.Recording
 
                 if (!isUnfixed && _screenshots.Count > maxSize)
                 {
-                    Mat mat = _screenshots.Dequeue();
-                    mat.Dispose();
+                    ScreenCaptured sc = _screenshots.Dequeue();
+                    sc.Frame.Dispose();
                 }
 
-                //프레임을 가져와서 특정 창의 크기로 이미지 자르기
-                Mat frame = Screenshot(bounds).ToMat();
+                //프레임 가져오기
+                Mat frame = Screenshot(bounds)?.ToMat();
 
-                //해상도 조절
-                if (frame.Size() != size)
+                if (frame != null)
                 {
-                    frame.Resize(size);
+                    //해상도 조절
+                    if (frame.Size() != size)
+                    {
+                        frame.Resize(size);
+                    }
+
+                    lastScreen = new ScreenCaptured(frame);
+                    _screenshots.Enqueue(lastScreen);
+
+                    sw.Stop();
+                    Trace.WriteLine($"{sw.ElapsedMilliseconds}ms elapsed.");
+
+                    //int delay = Math.Max(0, frameDelay - (int)sw.ElapsedMilliseconds);
+                    sw.Reset();
                 }
-
-                _screenshots.Enqueue(frame);
-
-                sw.Stop();
-                Trace.WriteLine($"{sw.ElapsedMilliseconds}ms elapsed.");
-
-                int delay = Math.Max(0, frameDelay - (int)sw.ElapsedMilliseconds);
-                //if (delay > 0) Thread.Sleep(delay);
-
-                sw.Reset();
+                else
+                {
+                    if (lastScreen != null)
+                    {
+                        lastScreen.CountToUse++;
+                    }
+                }
             }
         }
         #endregion
@@ -260,14 +281,14 @@ namespace ProjectReinforced.Recording
                 return false;
             }
 ;
-            bool isUnfixed = fps.EqualsPrecision(0.0);
+            bool isUnfixed = (int)fps == 0;
             if (secondsAfterHighlight > 0) Thread.Sleep(secondsAfterHighlight * 1000);
 
             IsRecording = false;
             _isWorking = true;
             frameCount = _screenshots.Count;
 
-            Mat baseScreen = _screenshots.Peek();
+            Mat baseScreen = _screenshots.Peek().Frame;
             Size size = baseScreen.Size();
 
             string path = Highlight.GetVideoPath(game, $"{Highlight.GetHighlightFileName(DateTime.Now)}.mp4");
@@ -290,16 +311,23 @@ namespace ProjectReinforced.Recording
                 return false;
             }
 
+            ScreenCaptured lastScreen = null;
+
             while (_screenshots.Count > 0)
             {
-                Mat mat = _screenshots.Dequeue();
-
-                if (mat.Size() != size)
+                if (lastScreen == null || lastScreen.CountToUse == 0)
                 {
-                    mat.Resize(size);
+                    lastScreen?.Frame?.Dispose(); //lastScreen 변수가 null이면 이 함수는 실행되지 않음
+                    lastScreen = _screenshots.Dequeue();
                 }
 
-                _videoWriter.Write(mat);
+                if (lastScreen.Frame.Size() != size)
+                {
+                    lastScreen.Frame.Resize(size);
+                }
+
+                _videoWriter.Write(lastScreen.Frame);
+                lastScreen.CountToUse--;
             }
 
             _videoWriter.Release();
@@ -312,10 +340,12 @@ namespace ProjectReinforced.Recording
         #region Record Test Function
         public static async Task RecordTestForDebugAsync(int waitMilliseconds, double fps, int secondsBeforeHighlight, int secondsAfterHighlight)
         {
+            int frameCount = 0;
+
             RecordForDebug(fps, secondsBeforeHighlight);
             await Task.Delay(waitMilliseconds);
 
-            bool recorded = StopForDebug(GameType.R6, fps, secondsBeforeHighlight, secondsAfterHighlight, out var frameCount);
+            bool recorded = await Task.Run(() => StopForDebug(GameType.R6, fps, secondsBeforeHighlight, secondsAfterHighlight, out frameCount));
             MessageBox.Show($"OK : {recorded}, Count : {frameCount}");
         }
         #endregion
@@ -328,11 +358,8 @@ namespace ProjectReinforced.Recording
 
         public static Bitmap Screenshot(System.Drawing.Rectangle bounds)
         {
-            Bitmap frame = null;
-
-
-
-            return CropImage(frame, bounds);
+            DesktopFrame desktopFrame = _dd.GetLatestFrame();
+            return desktopFrame != null ? CropImage(desktopFrame.DesktopImage, bounds) : null;
         }
 
         public static Bitmap Screenshot(int x, int y, int width, int height)
@@ -381,8 +408,8 @@ namespace ProjectReinforced.Recording
         {
             while (_screenshots.Count > 0)
             {
-                Mat mat = _screenshots.Dequeue();
-                mat.Dispose();
+                ScreenCaptured sc = _screenshots.Dequeue();
+                sc.Frame.Dispose();
             }
         }
     }
