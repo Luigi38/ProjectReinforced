@@ -53,7 +53,7 @@ LCUSharp - 롤 클라이언트 API
 - Desktop Duplication API를 이용한 스크린샷 저장
 - 스크린샷 데이터 변환 (Bitmap -> Mat) => 큐로 Mat 저장 => dequeue 반복하고 VideoWriter에 저장
 - Mat 오브젝트 압축?
- * [링크 참고](https://stackoverflow.com/questions/23651650/is-there-a-way-to-compress-an-object-in-memory-and-use-it-transparently)
+  * [링크 참고](https://stackoverflow.com/questions/23651650/is-there-a-way-to-compress-an-object-in-memory-and-use-it-transparently)
 
 ## 녹음
 - NAudio를 이용한 컴퓨터 사운드 녹음
