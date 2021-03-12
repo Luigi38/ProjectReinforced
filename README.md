@@ -32,7 +32,7 @@ Desktop Duplication API를 이용하여 아주 빠른 화면 캡처를 할 수 �
 감사합니다!
 
 # API Reference
-LCUSharp - 롤 클라이언트 API
+[LCUSharp](https://github.com/bryanhitc/lcu-sharp) - 롤 클라이언트 API
 
 [OpenCVSharp](https://github.com/shimat/opencvsharp) - OpenCV
 
