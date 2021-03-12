@@ -58,6 +58,7 @@ Desktop Duplication API를 이용하여 아주 빠른 화면 캡처를 할 수 �
 ## 녹음
 - NAudio를 이용한 컴퓨터 사운드 녹음
   * [링크 참고](https://stackoverflow.com/questions/11828437/c-sharp-how-to-record-general-audio-from-output-device-speaker-with-naudio-a)
+  * [참조 문서](https://github.com/naudio/NAudio/blob/master/Docs/RecordWavFileWinFormsWaveIn.md)
 
 ## 동영상 저장
 - 녹화와 녹음 할 때는 둘 다 분리하여 저장하고 동영상을 저장 시에는 둘을 합침 (OpenCV 라이브러리의 한계)
