@@ -87,10 +87,10 @@ namespace ProjectReinforced.Clients.Lol
             IsInitialized = true;
         }
 
-        private void LolClient_OnKill(object sender, Kda kda)
+        private async void LolClient_OnKill(object sender, Kda kda)
         {
             HighlightInfo info = new HighlightInfo("Kill", DateTime.Now, GAME_TYPE);
-            Highlight kill = Screen.Stop(info);
+            Highlight kill = await Screen.StopAsync(info);
 
             if (kill != null)
             {

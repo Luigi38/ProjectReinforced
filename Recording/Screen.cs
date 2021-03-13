@@ -19,7 +19,6 @@ using DesktopDuplication;
 using ProjectReinforced.Clients;
 using ProjectReinforced.Types;
 using ProjectReinforced.Others;
-using ProjectReinforced.Extensions;
 using ProjectReinforced.Properties;
 
 using Size = OpenCvSharp.Size;
@@ -202,6 +201,11 @@ namespace ProjectReinforced.Recording
             _isWorking = false;
 
             return highlight;
+        }
+
+        public static async Task<Highlight> StopAsync(HighlightInfo info)
+        {
+            return await Task.Run(() => Stop(info));
         }
         #region Debugging Functions
         #region Record Function
