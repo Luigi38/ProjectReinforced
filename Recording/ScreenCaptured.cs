@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.IO.Compression;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -11,12 +12,13 @@ namespace ProjectReinforced.Recording
     /// <summary>
     /// Desktop Duplication Api에 관한 특성을 효율적으로 사용하기 위해 만든 화면 캡처 저장 클래스
     /// </summary>
+    [Serializable]
     public class ScreenCaptured
     {
         /// <summary>
         /// 현재 프레임
         /// </summary>
-        public byte[] Frame { get; }
+        public Mat Frame { get; }
 
         /// <summary>
         /// 프레임을 재사용할 횟수. 기본값은 1
@@ -30,7 +32,7 @@ namespace ProjectReinforced.Recording
 
         public ScreenCaptured(Mat frame, long elapsedMilliseconds)
         {
-            Frame = frame.SerializeAndCompress();
+            Frame = frame;
             ElapsedMilliseconds = elapsedMilliseconds;
             CountToUse = 1;
         }

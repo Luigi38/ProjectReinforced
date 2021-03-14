@@ -43,7 +43,7 @@ namespace ProjectReinforced.Recording
         }
 
         private static VideoWriter _videoWriter;
-        private static Queue<ScreenCaptured> _screenshots = new Queue<ScreenCaptured>(3600); //60fps * 60seconds
+        private static Queue<byte[]> _screenshots = new Queue<byte[]>(3600); //60fps * 60seconds
         private static DesktopDuplicator _dd = new DesktopDuplicator(0);
 
         private static bool _isWorking;
@@ -98,8 +98,8 @@ namespace ProjectReinforced.Recording
 
                     if (!isUnfixed && _screenshots.Count > maxSize)
                     {
-                        ScreenCaptured sc = _screenshots.Dequeue();
-                        sc.Frame.DecompressAndDeserialize<Mat>().Dispose();
+                        ScreenCaptured sc = _screenshots.Dequeue().Deserialize<ScreenCaptured>();
+                        sc.Frame.Dispose();
                     }
 
                     //프레임 가져오기
@@ -117,7 +117,7 @@ namespace ProjectReinforced.Recording
                         }
 
                         lastScreen = new ScreenCaptured(frame, sw.ElapsedMilliseconds);
-                        _screenshots.Enqueue(lastScreen);
+                        _screenshots.Enqueue(lastScreen.Serialize());
 
                         sw.Stop();
                     }
@@ -162,7 +162,7 @@ namespace ProjectReinforced.Recording
 
             if (File.Exists(highlight.VideoPath)) File.Delete(highlight.VideoPath);
 
-            Mat baseScreen = _screenshots.Peek().Frame.DecompressAndDeserialize<Mat>();
+            Mat baseScreen = _screenshots.Peek().Deserialize<ScreenCaptured>().Frame;
             Size size = baseScreen.Size();
 
             string path = Highlight.GetVideoPath(info);
@@ -189,21 +189,19 @@ namespace ProjectReinforced.Recording
 
             while (_screenshots.Count > 0)
             {
-                Mat frame = lastScreen?.Frame?.DecompressAndDeserialize<Mat>();
-
                 if (lastScreen == null || lastScreen.CountToUse == 0)
                 {
-                    frame?.Dispose(); //lastScreen 변수가 null이면 이 함수는 실행되지 않음
-                    lastScreen = _screenshots.Dequeue();
+                    lastScreen?.Frame.Dispose(); //lastScreen 변수가 null이면 이 함수는 실행되지 않음
+                    lastScreen = _screenshots.Dequeue().Deserialize<ScreenCaptured>();
                     lastScreen.CountToUse = Math.Max((int)lastScreen.ElapsedMilliseconds / frameDelay, 1); //스크린샷을 하는 데 걸린 시간을 기준으로 재활용 값 설정
                 }
 
-                if (frame.Size() != size)
+                if (lastScreen.Frame.Size() != size)
                 {
-                    frame.Resize(size);
+                    lastScreen.Frame.Resize(size);
                 }
 
-                _videoWriter.Write(frame);
+                _videoWriter.Write(lastScreen.Frame);
                 lastScreen.CountToUse--;
             }
 
@@ -253,8 +251,8 @@ namespace ProjectReinforced.Recording
 
                 if (!isUnfixed && _screenshots.Count > maxSize)
                 {
-                    ScreenCaptured sc = _screenshots.Dequeue();
-                    sc.Frame.DecompressAndDeserialize<Mat>().Dispose();
+                    ScreenCaptured sc = _screenshots.Dequeue().Deserialize<ScreenCaptured>();
+                    sc.Frame.Dispose();
                 }
 
                 //프레임 가져오기
@@ -269,7 +267,7 @@ namespace ProjectReinforced.Recording
                     }
 
                     lastScreen = new ScreenCaptured(frame, sw.ElapsedMilliseconds);
-                    _screenshots.Enqueue(lastScreen);
+                    _screenshots.Enqueue(lastScreen.Serialize());
 
                     sw.Stop();
                     Trace.WriteLine($"{sw.ElapsedMilliseconds}ms elapsed.");
@@ -307,7 +305,7 @@ namespace ProjectReinforced.Recording
             _isWorking = true;
             frameCount = _screenshots.Count;
 
-            Mat baseScreen = _screenshots.Peek().Frame.DecompressAndDeserialize<Mat>();
+            Mat baseScreen = _screenshots.Peek().Deserialize<ScreenCaptured>().Frame;
             Size size = baseScreen.Size();
 
             string path = Highlight.GetVideoPath(game, $"{Highlight.GetHighlightFileName(DateTime.Now)}.mp4");
@@ -334,22 +332,20 @@ namespace ProjectReinforced.Recording
 
             while (_screenshots.Count > 0)
             {
-                Mat frame = lastScreen?.Frame?.DecompressAndDeserialize<Mat>();
-
                 if (lastScreen == null || lastScreen.CountToUse == 0)
                 {
-                    frame?.Dispose(); //lastScreen 변수가 null이면 이 함수는 실행되지 않음
+                    lastScreen?.Frame?.Dispose(); //lastScreen 변수가 null이면 이 함수는 실행되지 않음
 
-                    lastScreen = _screenshots.Dequeue();
+                    lastScreen = _screenshots.Dequeue().Deserialize<ScreenCaptured>();
                     lastScreen.CountToUse = Math.Max((int)lastScreen.ElapsedMilliseconds / frameDelay, 1); //스크린샷을 하는 데 걸린 시간을 기준으로 재활용 값 설정
                 }
 
-                if (frame.Size() != size)
+                if (lastScreen.Frame.Size() != size)
                 {
-                    frame.Resize(size);
+                    lastScreen.Frame.Resize(size);
                 }
 
-                _videoWriter.Write(frame);
+                _videoWriter.Write(lastScreen.Frame);
                 lastScreen.CountToUse--;
             }
 
@@ -431,8 +427,8 @@ namespace ProjectReinforced.Recording
         {
             while (_screenshots.Count > 0)
             {
-                ScreenCaptured sc = _screenshots.Dequeue();
-                sc.Frame.DecompressAndDeserialize<Mat>().Dispose();
+                ScreenCaptured sc = _screenshots.Dequeue().Deserialize<ScreenCaptured>();
+                sc.Frame.Dispose();
             }
         }
     }

@@ -6,7 +6,7 @@ namespace ProjectReinforced.Extensions
 {
     public static class CompressExtension
     {
-        public static byte[] SerializeAndCompress(this object obj)
+        public static byte[] Serialize(this object obj)
         {
             using (MemoryStream ms = new MemoryStream())
             {
@@ -19,7 +19,7 @@ namespace ProjectReinforced.Extensions
             }
         }
 
-        public static T DecompressAndDeserialize<T>(this byte[] data)
+        public static T Deserialize<T>(this byte[] data)
         {
             using (MemoryStream ms = new MemoryStream(data))
             using (GZipStream zs = new GZipStream(ms, CompressionMode.Decompress, true))
