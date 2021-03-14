@@ -85,6 +85,7 @@ namespace ProjectReinforced.Recording
             int frameDelay = !isUnfixed ? 1000 / fps : 0;
 
             ScreenCaptured lastScreen = null;
+            Stopwatch sw = new Stopwatch();
             IsRecording = true;
 
             //스크린샷 시 실행 되는 코드
@@ -92,6 +93,8 @@ namespace ProjectReinforced.Recording
             {
                 if (game.IsRunning && game.IsActive) //게임을 키고 현재 플레이 중인 경우
                 {
+                    sw.Start();
+
                     if (!isUnfixed && _screenshots.Count > maxSize)
                     {
                         ScreenCaptured sc = _screenshots.Dequeue();
@@ -112,8 +115,10 @@ namespace ProjectReinforced.Recording
                             frame.Resize(size);
                         }
 
-                        lastScreen = new ScreenCaptured(frame);
+                        lastScreen = new ScreenCaptured(frame, sw.ElapsedMilliseconds);
                         _screenshots.Enqueue(lastScreen);
+
+                        sw.Stop();
                     }
                     else
                     {
@@ -141,7 +146,10 @@ namespace ProjectReinforced.Recording
             if (_screenshots.Count <= 0 || !IsRecording) return null;
 
             int secondsAfterHighlight = Settings.Default.Screen_RecordTimeAfterHighlight;
-            bool isUnfixed = Settings.Default.Screen_Fps == 0;
+            double fps = Settings.Default.Screen_Fps;
+
+            bool isUnfixed = (int)fps == 0;
+            int frameDelay = !isUnfixed ? 1000 / (int)fps : 0;
 
             if (secondsAfterHighlight > 0) Thread.Sleep(secondsAfterHighlight * 1000);
 
@@ -155,7 +163,6 @@ namespace ProjectReinforced.Recording
 
             Mat baseScreen = _screenshots.Peek().Frame;
             Size size = baseScreen.Size();
-            double fps = Settings.Default.Screen_Fps;
 
             string path = Highlight.GetVideoPath(info);
             string directoryPath = Path.GetDirectoryName(path);
@@ -185,6 +192,7 @@ namespace ProjectReinforced.Recording
                 {
                     lastScreen?.Frame?.Dispose(); //lastScreen 변수가 null이면 이 함수는 실행되지 않음
                     lastScreen = _screenshots.Dequeue();
+                    lastScreen.CountToUse = Math.Max((int)lastScreen.ElapsedMilliseconds / frameDelay, 1); //스크린샷을 하는 데 걸린 시간을 기준으로 재활용 값 설정
                 }
 
                 if (lastScreen.Frame.Size() != size)
@@ -257,7 +265,7 @@ namespace ProjectReinforced.Recording
                         frame.Resize(size);
                     }
 
-                    lastScreen = new ScreenCaptured(frame);
+                    lastScreen = new ScreenCaptured(frame, sw.ElapsedMilliseconds);
                     _screenshots.Enqueue(lastScreen);
 
                     sw.Stop();
@@ -270,7 +278,10 @@ namespace ProjectReinforced.Recording
                 {
                     if (lastScreen != null)
                     {
-                        lastScreen.CountToUse++;
+                        sw.Stop();
+                        lastScreen.ElapsedMilliseconds += sw.ElapsedMilliseconds;
+
+                        sw.Reset();
                     }
                 }
             }
@@ -286,6 +297,7 @@ namespace ProjectReinforced.Recording
             }
 ;
             bool isUnfixed = (int)fps == 0;
+            int frameDelay = !isUnfixed ? 1000 / (int)fps : 0;
             if (secondsAfterHighlight > 0) Thread.Sleep(secondsAfterHighlight * 1000);
 
             IsRecording = false;
@@ -322,7 +334,9 @@ namespace ProjectReinforced.Recording
                 if (lastScreen == null || lastScreen.CountToUse == 0)
                 {
                     lastScreen?.Frame?.Dispose(); //lastScreen 변수가 null이면 이 함수는 실행되지 않음
+
                     lastScreen = _screenshots.Dequeue();
+                    lastScreen.CountToUse = Math.Max((int)lastScreen.ElapsedMilliseconds / frameDelay, 1); //스크린샷을 하는 데 걸린 시간을 기준으로 재활용 값 설정
                 }
 
                 if (lastScreen.Frame.Size() != size)
