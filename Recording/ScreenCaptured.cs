@@ -1,10 +1,4 @@
-﻿using System.IO;
-using System.IO.Compression;
-using System.Runtime.Serialization.Formatters.Binary;
-
-using OpenCvSharp;
-
-using ProjectReinforced.Extensions;
+﻿using OpenCvSharp;
 
 namespace ProjectReinforced.Recording
 {
@@ -16,7 +10,7 @@ namespace ProjectReinforced.Recording
         /// <summary>
         /// 현재 프레임
         /// </summary>
-        public byte[] Frame { get; }
+        public Mat Frame { get; }
 
         /// <summary>
         /// 프레임을 재사용할 횟수. 기본값은 1
@@ -30,7 +24,7 @@ namespace ProjectReinforced.Recording
 
         public ScreenCaptured(Mat frame, long elapsedMilliseconds)
         {
-            Frame = frame.SerializeAndCompress();
+            Frame = frame;
             ElapsedMilliseconds = elapsedMilliseconds;
             CountToUse = 1;
         }

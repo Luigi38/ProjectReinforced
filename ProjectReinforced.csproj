@@ -165,7 +165,6 @@
     <Compile Include="Clients\Lol\LolLiveEvent.cs" />
     <Compile Include="Clients\Lol\LolSummoner.cs" />
     <Compile Include="Clients\R6\RainbowClient.cs" />
-    <Compile Include="Extensions\CompressExtension.cs" />
     <Compile Include="Extensions\MathExtension.cs" />
     <Compile Include="Others\ExceptionManager.cs" />
     <Compile Include="Others\Win32.cs" />
