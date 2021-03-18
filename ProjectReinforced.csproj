@@ -63,6 +63,9 @@
     <Reference Include="DesktopDuplication">
       <HintPath>Libraries\DesktopDuplication.dll</HintPath>
     </Reference>
+    <Reference Include="K4os.Compression.LZ4, Version=1.2.6.0, Culture=neutral, PublicKeyToken=2186fa9121ef231d, processorArchitecture=MSIL">
+      <HintPath>packages\K4os.Compression.LZ4.1.2.6\lib\net46\K4os.Compression.LZ4.dll</HintPath>
+    </Reference>
     <Reference Include="LCUSharp">
       <HintPath>Libraries\LCUSharp.dll</HintPath>
     </Reference>
@@ -165,6 +168,7 @@
     <Compile Include="Clients\Lol\LolLiveEvent.cs" />
     <Compile Include="Clients\Lol\LolSummoner.cs" />
     <Compile Include="Clients\R6\RainbowClient.cs" />
+    <Compile Include="Extensions\BitmapConverter.cs" />
     <Compile Include="Extensions\MathExtension.cs" />
     <Compile Include="Others\ExceptionManager.cs" />
     <Compile Include="Others\Win32.cs" />
@@ -240,9 +244,15 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Libraries\DesktopDuplication.dll" />
+    <Content Include="Libraries\LCUSharp.dll" />
     <Content Include="OpenCvSharpExtern.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Libraries\SharpDX.Direct3D11.dll" />
+    <Content Include="Libraries\SharpDX.dll" />
+    <Content Include="Libraries\SharpDX.DXGI.dll" />
+    <Content Include="Libraries\SharpDX.Mathematics.dll" />
     <Resource Include="settings_89381.png" />
   </ItemGroup>
   <ItemGroup>

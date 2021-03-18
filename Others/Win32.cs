@@ -16,6 +16,6 @@ namespace ProjectReinforced.Others
         [DllImport("user32")]
         public static extern IntPtr GetForegroundWindow();
         [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool GetWindowRect(IntPtr hWnd, ref Screen.Rectangle rect);
+        public static extern bool GetWindowRect(IntPtr hWnd, ref Screen.RECT rect);
     }
 }

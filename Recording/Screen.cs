@@ -18,6 +18,7 @@ using DesktopDuplication;
 
 using ProjectReinforced.Clients;
 using ProjectReinforced.Types;
+using ProjectReinforced.Extensions;
 using ProjectReinforced.Others;
 using ProjectReinforced.Properties;
 
@@ -28,21 +29,29 @@ namespace ProjectReinforced.Recording
     public class Screen
     {
         [StructLayout(LayoutKind.Sequential)]
-        public struct Rectangle
+        public struct RECT
         {
             public int left;
             public int top;
             public int right;
             public int bottom;
 
-            public static implicit operator System.Drawing.Rectangle(Rectangle rect)
+            public int Width => right - left;
+            public int Height => bottom - top;
+
+            public static implicit operator Rectangle(RECT rect)
             {
-                return new System.Drawing.Rectangle(rect.left, rect.top, rect.right, rect.bottom);
+                return new Rectangle(rect.left, rect.top, rect.right, rect.bottom);
+            }
+
+            public static implicit operator Size(RECT rect)
+            {
+                return new Size(rect.Width, rect.Height);
             }
         }
 
         private static VideoWriter _videoWriter;
-        private static Queue<ScreenCaptured> _screenshots = new Queue<ScreenCaptured>();
+        private static Queue<ScreenCaptured> _screenshots = new Queue<ScreenCaptured>(3600); //60fps * 60seconds
         private static DesktopDuplicator _dd = new DesktopDuplicator(0);
 
         private static bool _isWorking;
@@ -54,7 +63,7 @@ namespace ProjectReinforced.Recording
         {
             if (game == null) return;
 
-            Rectangle rect = new Rectangle
+            RECT rect = new RECT
             {
                 left = 0,
                 right = 1920,
@@ -73,7 +82,7 @@ namespace ProjectReinforced.Recording
             }
         }
 
-        private static void Start(IGameClient game, System.Drawing.Rectangle bounds)
+        private static void Start(IGameClient game, Rectangle bounds)
         {
             int resolution = Settings.Default.Screen_Resolution;
             int seconds = Settings.Default.Screen_RecordTimeBeforeHighlight;
@@ -102,23 +111,31 @@ namespace ProjectReinforced.Recording
                     }
 
                     //프레임 가져오기
-                    Mat frame = Screenshot(bounds)?.ToMat();
+                    Bitmap frame = Screenshot(bounds);
 
                     if (frame != null)
                     {
+                        Size size = frame.Size.ToOpenCvSharpSize();
+
                         //해상도 조절
                         if (resolution != 0)
                         {
-                            Size size = new Size(1920, 1080);
-
-                            if (resolution == 720) size = new Size(1280, 720); //720p (HD)
-                            frame.Resize(size);
+                            switch (resolution)
+                            {
+                                case 1080:
+                                    size = new Size(1920, 1080);
+                                    break;
+                                case 720:
+                                    size = new Size(1280, 720); //720p (HD)
+                                    break;
+                            }
                         }
 
-                        lastScreen = new ScreenCaptured(frame, sw.ElapsedMilliseconds);
+                        lastScreen = new ScreenCaptured(frame, size, sw.ElapsedMilliseconds);
                         _screenshots.Enqueue(lastScreen);
 
                         sw.Stop();
+                        frame.Dispose();
                     }
                     else
                     {
@@ -161,8 +178,7 @@ namespace ProjectReinforced.Recording
 
             if (File.Exists(highlight.VideoPath)) File.Delete(highlight.VideoPath);
 
-            Mat baseScreen = _screenshots.Peek().Frame;
-            Size size = baseScreen.Size();
+            Size size = _screenshots.Peek().FrameSize;
 
             string path = Highlight.GetVideoPath(info);
             string directoryPath = Path.GetDirectoryName(path);
@@ -178,7 +194,6 @@ namespace ProjectReinforced.Recording
             if (!_videoWriter.IsOpened())
             {
                 _videoWriter.Release();
-                baseScreen.Dispose();
 
                 ExceptionManager.ShowError("하이라이트 영상을 저장할 수 없습니다.", "저장할 수 없음", nameof(Screen), nameof(Stop));
                 return null;
@@ -205,7 +220,6 @@ namespace ProjectReinforced.Recording
             }
 
             _videoWriter.Release();
-            baseScreen.Dispose();
             _isWorking = false;
 
             return highlight;
@@ -219,7 +233,7 @@ namespace ProjectReinforced.Recording
         #region Record Function
         public static void RecordForDebug(double fps, int seconds)
         {
-            Rectangle rect = new Rectangle //1920x1080 해상도
+            RECT rect = new RECT //1920x1080 해상도
             {
                 left = 0,
                 top = 0,
@@ -232,7 +246,7 @@ namespace ProjectReinforced.Recording
         }
         #endregion
         #region Start Function
-        private static void StartForDebug(Rectangle bounds, Size size, double fps, int seconds)
+        private static void StartForDebug(RECT bounds, Size size, double fps, int seconds)
         {
             bool isUnfixed = (int)fps == 0;
             //큐의 최대 크기 (고정되지 않은 프레임 방식이면 무한)
@@ -255,18 +269,14 @@ namespace ProjectReinforced.Recording
                 }
 
                 //프레임 가져오기
-                Mat frame = Screenshot(bounds)?.ToMat();
+                Bitmap frame = Screenshot(bounds);
 
                 if (frame != null)
                 {
-                    //해상도 조절
-                    if (frame.Size() != size)
-                    {
-                        frame.Resize(size);
-                    }
-
-                    lastScreen = new ScreenCaptured(frame, sw.ElapsedMilliseconds);
+                    lastScreen = new ScreenCaptured(frame, size, sw.ElapsedMilliseconds);
                     _screenshots.Enqueue(lastScreen);
+
+                    frame.Dispose();
 
                     sw.Stop();
                     Trace.WriteLine($"{sw.ElapsedMilliseconds}ms elapsed.");
@@ -304,8 +314,7 @@ namespace ProjectReinforced.Recording
             _isWorking = true;
             frameCount = _screenshots.Count;
 
-            Mat baseScreen = _screenshots.Peek().Frame;
-            Size size = baseScreen.Size();
+            Size size = _screenshots.Peek().FrameSize;
 
             string path = Highlight.GetVideoPath(game, $"{Highlight.GetHighlightFileName(DateTime.Now)}.mp4");
             string directoryPath = Path.GetDirectoryName(path);
@@ -321,7 +330,6 @@ namespace ProjectReinforced.Recording
             if (!_videoWriter.IsOpened())
             {
                 _videoWriter.Release();
-                baseScreen.Dispose();
 
                 ExceptionManager.ShowError("하이라이트 영상을 저장할 수 없습니다.", "저장할 수 없음", nameof(Screen), nameof(Stop));
                 return false;
@@ -349,7 +357,6 @@ namespace ProjectReinforced.Recording
             }
 
             _videoWriter.Release();
-            baseScreen.Dispose();
             _isWorking = false;
 
             return true;
@@ -371,10 +378,10 @@ namespace ProjectReinforced.Recording
 
         public static Bitmap Screenshot()
         {
-            return Screenshot(System.Drawing.Rectangle.Empty);
+            return Screenshot(Rectangle.Empty);
         }
 
-        public static Bitmap Screenshot(System.Drawing.Rectangle bounds)
+        public static Bitmap Screenshot(Rectangle bounds)
         {
             DesktopFrame desktopFrame = _dd.GetLatestFrame();
             return desktopFrame != null ? CropImage(desktopFrame.DesktopImage, bounds) : null;
@@ -382,7 +389,7 @@ namespace ProjectReinforced.Recording
 
         public static Bitmap Screenshot(int x, int y, int width, int height)
         {
-            return Screenshot(new System.Drawing.Rectangle(x, y, width, height));
+            return Screenshot(new Rectangle(x, y, width, height));
         }
 
         /// <summary>
