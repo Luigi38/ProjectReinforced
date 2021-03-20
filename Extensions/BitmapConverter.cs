@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
+using ProjectReinforced.Recording;
+
 namespace ProjectReinforced.Extensions
 {
     public static class BitmapConverter
@@ -39,6 +41,17 @@ namespace ProjectReinforced.Extensions
         public static OpenCvSharp.Size ToOpenCvSharpSize(this Size size)
         {
             return new OpenCvSharp.Size(size.Width, size.Height);
+        }
+
+        public static Screen.RECT ToScreenRECT(this Rectangle rect)
+        {
+            return new Screen.RECT
+            {
+                left = rect.X,
+                top = rect.Y,
+                right = rect.Right,
+                bottom = rect.Bottom
+            };
         }
     }
 }

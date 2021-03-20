@@ -41,7 +41,7 @@ namespace ProjectReinforced.Recording
 
             public static implicit operator Rectangle(RECT rect)
             {
-                return new Rectangle(rect.left, rect.top, rect.right, rect.bottom);
+                return new Rectangle(rect.left, rect.top, rect.Width, rect.Height);
             }
 
             public static implicit operator Size(RECT rect)
@@ -384,7 +384,7 @@ namespace ProjectReinforced.Recording
         public static Bitmap Screenshot(Rectangle bounds)
         {
             DesktopFrame desktopFrame = _dd.GetLatestFrame();
-            return desktopFrame != null ? CropImage(desktopFrame.DesktopImage, bounds) : null;
+            return desktopFrame != null ? CropImage(desktopFrame.DesktopImage, bounds.ToScreenRECT()) : null;
         }
 
         public static Bitmap Screenshot(int x, int y, int width, int height)
@@ -398,9 +398,9 @@ namespace ProjectReinforced.Recording
         /// <param name="image"></param>
         /// <param name="rect"></param>
         /// <returns></returns>
-        private static Bitmap CropImage(Bitmap image, System.Drawing.Rectangle rect)
+        private static Bitmap CropImage(Bitmap image, RECT rect)
         {
-            if (rect == System.Drawing.Rectangle.Empty || (image != null && image.Width == rect.Width && image.Height == rect.Height)) return image;
+            if (image != null && image.Width == rect.Width && image.Height == rect.Height) return image;
             return image?.Clone(rect, image.PixelFormat);
         }
 
