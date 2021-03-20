@@ -42,16 +42,5 @@ namespace ProjectReinforced.Extensions
         {
             return new OpenCvSharp.Size(size.Width, size.Height);
         }
-
-        public static Screen.RECT ToScreenRECT(this Rectangle rect)
-        {
-            return new Screen.RECT
-            {
-                left = rect.X,
-                top = rect.Y,
-                right = rect.Right,
-                bottom = rect.Bottom
-            };
-        }
     }
 }

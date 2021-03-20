@@ -246,7 +246,7 @@ namespace ProjectReinforced.Recording
         }
         #endregion
         #region Start Function
-        private static void StartForDebug(RECT bounds, Size size, double fps, int seconds)
+        private static void StartForDebug(Rectangle bounds, Size size, double fps, int seconds)
         {
             bool isUnfixed = (int)fps == 0;
             //큐의 최대 크기 (고정되지 않은 프레임 방식이면 무한)
@@ -384,7 +384,7 @@ namespace ProjectReinforced.Recording
         public static Bitmap Screenshot(Rectangle bounds)
         {
             DesktopFrame desktopFrame = _dd.GetLatestFrame();
-            return desktopFrame != null ? CropImage(desktopFrame.DesktopImage, bounds.ToScreenRECT()) : null;
+            return desktopFrame != null ? CropImage(desktopFrame.DesktopImage, bounds) : null;
         }
 
         public static Bitmap Screenshot(int x, int y, int width, int height)
@@ -398,9 +398,9 @@ namespace ProjectReinforced.Recording
         /// <param name="image"></param>
         /// <param name="rect"></param>
         /// <returns></returns>
-        private static Bitmap CropImage(Bitmap image, RECT rect)
+        private static Bitmap CropImage(Bitmap image, Rectangle rect)
         {
-            if (image != null && image.Width == rect.Width && image.Height == rect.Height) return image;
+            if (rect == Rectangle.Empty || (image != null && image.Width == rect.Width && image.Height == rect.Height)) return image;
             return image?.Clone(rect, image.PixelFormat);
         }
 
