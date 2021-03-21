@@ -17,15 +17,26 @@ namespace ProjectReinforced.Recording
 
         public static string GetHighlightFileName(DateTime date)
         {
-            return date.ToString("yy-MM-dd-HH-mm-ss");
+            return GetHighlightFileName(date, string.Empty);
+        }
+
+        public static string GetHighlightFileName(DateTime date, string extension)
+        {
+            string fileName = date.ToString("yy-MM-dd-HH-mm-ss");
+            return string.IsNullOrWhiteSpace(extension) ? fileName : string.Join(".", fileName, extension);
         }
 
         public static string GetVideoPath(HighlightInfo info)
         {
-            return GetVideoPath(info.Game, $"{GetHighlightFileName(info.EventDate)}.mp4");
+            return GetFilePath(info.Game, GetHighlightFileName(info.EventDate, "mp4"));
         }
 
-        public static string GetVideoPath(GameType gameType, string fileName)
+        public static string GetAudioPath(HighlightInfo info)
+        {
+            return GetFilePath(info.Game, GetHighlightFileName(info.EventDate, "mp3"));
+        }
+
+        public static string GetFilePath(GameType gameType, string fileName)
         {
             return Path.Combine(HighlightManager.LocalPath, gameType.ToString(), fileName);
         }

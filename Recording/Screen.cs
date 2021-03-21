@@ -55,18 +55,13 @@ namespace ProjectReinforced.Recording
         }
 
         private static VideoWriter _videoWriter;
-
         /// <summary>
         /// 화면 녹화용
         /// </summary>
         private static DesktopDuplicator _dd = new DesktopDuplicator(0);
-        /// <summary>
-        /// 소리 녹음용 (스피커)
-        /// </summary>
-        private static WasapiLoopbackCapture _waSpeaker = new WasapiLoopbackCapture();
-
         private static Queue<ScreenCaptured> _frames = new Queue<ScreenCaptured>(3600); //60fps * 60seconds
-        private static Queue<WaveInEventArgs> _sounds = new Queue<WaveInEventArgs>();
+
+        public static string FFmpegExecutablePath { get; set; } = string.Empty;
 
         private static bool _isWorking;
 
@@ -112,6 +107,7 @@ namespace ProjectReinforced.Recording
             IsRecording = true;
 
             //소리 녹음
+
 
             //스크린샷 시 실행 되는 코드
             while (IsRecording)
@@ -279,7 +275,7 @@ namespace ProjectReinforced.Recording
             IsRecording = true;
 
             //소리 녹음
-
+            Audio.Record(true);
 
             while (IsRecording)
             {
@@ -321,12 +317,11 @@ namespace ProjectReinforced.Recording
         }
         #endregion
         #region Stop Function
-        public static bool StopForDebug(GameType game, double fps, int secondsBeforeHighlight, int secondsAfterHighlight, out int frameCount)
+        public static async Task<int> StopAsyncForDebug(GameType game, double fps, int secondsBeforeHighlight, int secondsAfterHighlight)
         {
             if (_frames.Count <= 0 || !IsRecording)
             {
-                frameCount = 0;
-                return false;
+                return 0;
             }
 ;
             bool isUnfixed = (int)fps == 0;
@@ -335,11 +330,17 @@ namespace ProjectReinforced.Recording
 
             IsRecording = false;
             _isWorking = true;
-            frameCount = _frames.Count;
+
+            int frameCount = _frames.Count;
+            DateTime finishedTime = DateTime.Now;
+
+            string audioPath = await Audio.StopAsync();
+            bool audioAvailable = !string.IsNullOrWhiteSpace(audioPath);
 
             Size size = _frames.Peek().FrameSize;
+            string outputPath = Highlight.GetFilePath(game, Highlight.GetHighlightFileName(finishedTime, "mp4"));
 
-            string path = Highlight.GetVideoPath(game, $"{Highlight.GetHighlightFileName(DateTime.Now)}.mp4");
+            string path = audioAvailable ? MainWindow.GetTempFileName("mp4") : outputPath;
             string directoryPath = Path.GetDirectoryName(path);
 
             //고정되지 않은 프레임 방식 (저장된 프레임의 수에 따라서 fps가 결정됨)
@@ -355,7 +356,7 @@ namespace ProjectReinforced.Recording
                 _videoWriter.Release();
 
                 ExceptionManager.ShowError("하이라이트 영상을 저장할 수 없습니다.", "저장할 수 없음", nameof(Screen), nameof(Stop));
-                return false;
+                return 0;
             }
 
             ScreenCaptured lastScreen = null;
@@ -380,21 +381,29 @@ namespace ProjectReinforced.Recording
             }
 
             _videoWriter.Release();
+
+            //영상 및 소리 합병
+            if (audioAvailable && !string.IsNullOrWhiteSpace(FFmpegExecutablePath))
+            {
+                await AddAudio(path, audioPath, outputPath);
+
+                //합병됐으므로 영상 및 소리 파일 삭제
+                File.Delete(path);
+                File.Delete(audioPath);
+            }
             _isWorking = false;
 
-            return true;
+            return frameCount;
         }
         #endregion
         #region Record Test Function
         public static async Task RecordTestForDebugAsync(int waitMilliseconds, double fps, int secondsBeforeHighlight, int secondsAfterHighlight)
         {
-            int frameCount = 0;
-
             RecordForDebug(fps, secondsBeforeHighlight);
             await Task.Delay(waitMilliseconds);
 
-            bool recorded = await Task.Run(() => StopForDebug(GameType.R6, fps, secondsBeforeHighlight, secondsAfterHighlight, out frameCount));
-            MessageBox.Show($"OK : {recorded}, Count : {frameCount}");
+            int frameCount = await Task.Run(() => StopAsyncForDebug(GameType.R6, fps, secondsBeforeHighlight, secondsAfterHighlight));
+            MessageBox.Show($"OK : {frameCount > 0}, Count : {frameCount}");
         }
         #endregion
         #endregion
@@ -427,6 +436,31 @@ namespace ProjectReinforced.Recording
             return image?.Clone(rect, image.PixelFormat);
         }
 
+        /// <summary>
+        /// 영상 파일에 소리를 추가 합니다. (https://stackoverflow.com/questions/53584389/combine-audio-and-video-files-with-ffmpeg-in-c-sharp)
+        /// </summary>
+        /// <param name="videoPath">영상 파일 경로</param>
+        /// <param name="audioPath">소리 파일 경로</param>
+        /// <param name="outPath">출력 파일 경로</param>
+        /// <returns></returns>
+        public static async Task AddAudio(string videoPath, string audioPath, string outPath)
+        {
+            string args = $"-i \"{videoPath}\" -i \"{audioPath}\" \"{outPath}\"";
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                FileName = "ffmpeg.exe",
+                WorkingDirectory = FFmpegExecutablePath,
+                Arguments = args
+            };
+
+            using (Process exeProcess = Process.Start(startInfo))
+            {
+                await exeProcess.WaitForExitAsync();
+            }
+        }
+
         public static async Task WorkForRecordingAsync()
         {
             while (!IsDisposed)
@@ -447,10 +481,7 @@ namespace ProjectReinforced.Recording
             IsRecording = false;
 
             ClearFrames();
-            _sounds.Clear();
-
             _frames = null;
-            _sounds = null;
         }
 
         /// <summary>

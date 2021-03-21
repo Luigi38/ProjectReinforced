@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -21,6 +22,8 @@ using ProjectReinforced.Clients;
 using ProjectReinforced.Recording;
 using ProjectReinforced.Types;
 using ProjectReinforced.Extensions;
+
+using Path = System.IO.Path;
 
 namespace ProjectReinforced
 {
@@ -61,9 +64,13 @@ namespace ProjectReinforced
                 };
             }
 
+            //Initialize 부분
             await ClientManager.Initialize();
+            Audio.Initialize();
 
-            HighlightManager.LocalPath = $@"{AppContext.BaseDirectory}\Workspace"; //임시 폴더
+            HighlightManager.LocalPath = $"{AppContext.BaseDirectory}Workspace"; //임시 폴더
+            Screen.FFmpegExecutablePath = $"{AppContext.BaseDirectory}Libraries";
+
             _ = Task.Run(Screen.WorkForRecordingAsync); //녹화 스레드
 
             this.SizeToContent = SizeToContent.WidthAndHeight;
@@ -78,6 +85,16 @@ namespace ProjectReinforced
         public static void SetLocale(Locale loc)
         {
             Locale = loc;
+        }
+
+        /// <summary>
+        /// 임시 파일 경로를 가져옵니다.
+        /// </summary>
+        /// <param name="extension">파일 확장자</param>
+        /// <returns>임시 파일 경로</returns>
+        public static string GetTempFileName(string extension)
+        {
+            return string.Join(".", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), extension);
         }
     }
 }
