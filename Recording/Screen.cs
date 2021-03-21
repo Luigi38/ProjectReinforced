@@ -16,6 +16,9 @@ using OpenCvSharp.Extensions;
 
 using DesktopDuplication;
 
+using NAudio;
+using NAudio.Wave;
+
 using ProjectReinforced.Clients;
 using ProjectReinforced.Types;
 using ProjectReinforced.Extensions;
@@ -51,8 +54,18 @@ namespace ProjectReinforced.Recording
         }
 
         private static VideoWriter _videoWriter;
-        private static Queue<ScreenCaptured> _screenshots = new Queue<ScreenCaptured>(3600); //60fps * 60seconds
+
+        /// <summary>
+        /// 화면 녹화용
+        /// </summary>
         private static DesktopDuplicator _dd = new DesktopDuplicator(0);
+        /// <summary>
+        /// 소리 녹음용 (스피커)
+        /// </summary>
+        private static WasapiLoopbackCapture _waSpeaker = new WasapiLoopbackCapture();
+
+        private static Queue<ScreenCaptured> _scenes = new Queue<ScreenCaptured>(3600); //60fps * 60seconds
+        private static Queue<WaveInEventArgs> _sounds = new Queue<WaveInEventArgs>();
 
         private static bool _isWorking;
 
@@ -97,6 +110,8 @@ namespace ProjectReinforced.Recording
             Stopwatch sw = new Stopwatch();
             IsRecording = true;
 
+            //소리 녹음
+
             //스크린샷 시 실행 되는 코드
             while (IsRecording)
             {
@@ -104,9 +119,9 @@ namespace ProjectReinforced.Recording
                 {
                     sw.Start();
 
-                    if (!isUnfixed && _screenshots.Count > maxSize)
+                    if (!isUnfixed && _scenes.Count > maxSize)
                     {
-                        ScreenCaptured sc = _screenshots.Dequeue();
+                        ScreenCaptured sc = _scenes.Dequeue();
                         sc.Frame.Dispose();
                     }
 
@@ -132,7 +147,7 @@ namespace ProjectReinforced.Recording
                         }
 
                         lastScreen = new ScreenCaptured(frame, size, sw.ElapsedMilliseconds);
-                        _screenshots.Enqueue(lastScreen);
+                        _scenes.Enqueue(lastScreen);
 
                         sw.Stop();
                         frame.Dispose();
@@ -163,7 +178,7 @@ namespace ProjectReinforced.Recording
 
         public static Highlight Stop(HighlightInfo info)
         {
-            if (_screenshots.Count <= 0 || !IsRecording) return null;
+            if (_scenes.Count <= 0 || !IsRecording) return null;
 
             int secondsAfterHighlight = Settings.Default.Screen_RecordTimeAfterHighlight;
             double fps = Settings.Default.Screen_Fps;
@@ -181,13 +196,13 @@ namespace ProjectReinforced.Recording
 
             if (File.Exists(highlight.VideoPath)) File.Delete(highlight.VideoPath);
 
-            Size size = _screenshots.Peek().FrameSize;
+            Size size = _scenes.Peek().FrameSize;
 
             string path = Highlight.GetVideoPath(info);
             string directoryPath = Path.GetDirectoryName(path);
 
             //고정되지 않은 프레임 방식 (저장된 프레임의 수에 따라서 fps가 결정됨)
-            if (isUnfixed) fps = (double)_screenshots.Count / (Settings.Default.Screen_RecordTimeBeforeHighlight + secondsAfterHighlight);
+            if (isUnfixed) fps = (double)_scenes.Count / (Settings.Default.Screen_RecordTimeBeforeHighlight + secondsAfterHighlight);
 
             if (File.Exists(path)) File.Delete(path);
             if (directoryPath != null && !Directory.Exists(directoryPath)) Directory.CreateDirectory(directoryPath);
@@ -204,13 +219,13 @@ namespace ProjectReinforced.Recording
 
             ScreenCaptured lastScreen = null;
 
-            while (_screenshots.Count > 0)
+            while (_scenes.Count > 0)
             {
                 if (lastScreen == null || lastScreen.CountToUse == 0)
                 {
                     lastScreen?.Frame?.Dispose(); //lastScreen 변수가 null이면 이 함수는 실행되지 않음
 
-                    lastScreen = _screenshots.Dequeue();
+                    lastScreen = _scenes.Dequeue();
                     lastScreen.CountToUse = Math.Max((int)lastScreen.ElapsedMilliseconds / frameDelay, 1); //스크린샷을 하는 데 걸린 시간을 기준으로 재활용 값 설정
                 }
 
@@ -262,13 +277,16 @@ namespace ProjectReinforced.Recording
             Stopwatch sw = new Stopwatch();
             IsRecording = true;
 
+            //소리 녹음
+
+
             while (IsRecording)
             {
                 sw.Start();
 
-                if (!isUnfixed && _screenshots.Count > maxSize)
+                if (!isUnfixed && _scenes.Count > maxSize)
                 {
-                    ScreenCaptured sc = _screenshots.Dequeue();
+                    ScreenCaptured sc = _scenes.Dequeue();
                     sc.Frame.Dispose();
                 }
 
@@ -278,7 +296,7 @@ namespace ProjectReinforced.Recording
                 if (frame != null)
                 {
                     lastScreen = new ScreenCaptured(frame, size, sw.ElapsedMilliseconds);
-                    _screenshots.Enqueue(lastScreen);
+                    _scenes.Enqueue(lastScreen);
 
                     frame.Dispose();
 
@@ -304,7 +322,7 @@ namespace ProjectReinforced.Recording
         #region Stop Function
         public static bool StopForDebug(GameType game, double fps, int secondsBeforeHighlight, int secondsAfterHighlight, out int frameCount)
         {
-            if (_screenshots.Count <= 0 || !IsRecording)
+            if (_scenes.Count <= 0 || !IsRecording)
             {
                 frameCount = 0;
                 return false;
@@ -316,15 +334,15 @@ namespace ProjectReinforced.Recording
 
             IsRecording = false;
             _isWorking = true;
-            frameCount = _screenshots.Count;
+            frameCount = _scenes.Count;
 
-            Size size = _screenshots.Peek().FrameSize;
+            Size size = _scenes.Peek().FrameSize;
 
             string path = Highlight.GetVideoPath(game, $"{Highlight.GetHighlightFileName(DateTime.Now)}.mp4");
             string directoryPath = Path.GetDirectoryName(path);
 
             //고정되지 않은 프레임 방식 (저장된 프레임의 수에 따라서 fps가 결정됨)
-            if (isUnfixed) fps = (double) _screenshots.Count / (secondsBeforeHighlight + secondsAfterHighlight);
+            if (isUnfixed) fps = (double) _scenes.Count / (secondsBeforeHighlight + secondsAfterHighlight);
 
             if (File.Exists(path)) File.Delete(path);
             if (directoryPath != null && !Directory.Exists(directoryPath)) Directory.CreateDirectory(directoryPath);
@@ -341,13 +359,13 @@ namespace ProjectReinforced.Recording
 
             ScreenCaptured lastScreen = null;
 
-            while (_screenshots.Count > 0)
+            while (_scenes.Count > 0)
             {
                 if (lastScreen == null || lastScreen.CountToUse == 0)
                 {
                     lastScreen?.Frame?.Dispose(); //lastScreen 변수가 null이면 이 함수는 실행되지 않음
 
-                    lastScreen = _screenshots.Dequeue();
+                    lastScreen = _scenes.Dequeue();
                     lastScreen.CountToUse = Math.Max((int)lastScreen.ElapsedMilliseconds / frameDelay, 1); //스크린샷을 하는 데 걸린 시간을 기준으로 재활용 값 설정
                 }
 
@@ -427,7 +445,7 @@ namespace ProjectReinforced.Recording
             IsDisposed = true;
 
             ClearScreenshots();
-            _screenshots = null;
+            _scenes = null;
         }
 
         /// <summary>
@@ -435,9 +453,9 @@ namespace ProjectReinforced.Recording
         /// </summary>
         private static void ClearScreenshots()
         {
-            while (_screenshots.Count > 0)
+            while (_scenes.Count > 0)
             {
-                ScreenCaptured sc = _screenshots.Dequeue();
+                ScreenCaptured sc = _scenes.Dequeue();
                 sc.Frame.Dispose();
             }
         }
