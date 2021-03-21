@@ -40,7 +40,7 @@ Desktop Duplication API를 이용하여 아주 빠른 화면 캡처를 할 수 �
 ## 화면 녹화
 |API 이름|설명|참조|
 |:---:|:---:|:---:|
-|[OpenCVSharp](https://github.com/shimat/opencvsharp)|OpenCV|[Recording/Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs)|
+|[OpenCVSharp](https://github.com/shimat/opencvsharp)|OpenCV|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs)|
 |[desktop-duplication-net](https://github.com/jasonpang/desktop-duplication-net)|화면 캡처|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs)|
 |[MessagePack-CSharp](https://github.com/neuecc/MessagePack-CSharp)|데이터 압축|[ScreenCaptured.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/ScreenCaptured.cs)|
 
