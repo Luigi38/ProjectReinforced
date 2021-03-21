@@ -32,11 +32,23 @@ Desktop Duplication API를 이용하여 아주 빠른 화면 캡처를 할 수 �
 감사합니다!
 
 # API Reference
-[LCUSharp](https://github.com/bryanhitc/lcu-sharp) - 롤 클라이언트 API
+## 게임 클라이언트
+|API 이름|설명|참조|
+|:---:|:---:|:---:|
+|[LCUSharp](https://github.com/bryanhitc/lcu-sharp)|롤 클라이언트 API|[LolClient.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Clients/Lol/LolClient.cs)|
 
-[OpenCVSharp](https://github.com/shimat/opencvsharp) - OpenCV
+## 화면 녹화
+|API 이름|설명|참조|
+|:---:|:---:|:---:|
+|[OpenCVSharp](https://github.com/shimat/opencvsharp)|OpenCV|[Recording/Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs)|
+|[desktop-duplication-net](https://github.com/jasonpang/desktop-duplication-net)|화면 캡처|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs)|
+|[MessagePack-CSharp](https://github.com/neuecc/MessagePack-CSharp)|데이터 압축|[ScreenCaptured.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/ScreenCaptured.cs)|
 
-[desktop-duplication-net](https://github.com/jasonpang/desktop-duplication-net) - Desktop Duplication API (화면 캡처)
+## 소리 녹음
+|API 이름|설명|참조|
+|:---:|:---:|:---:|
+|[NAudio](https://github.com/naudio/NAudio)|소리 녹음|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs)|
+|[NAudio.Lame](https://github.com/Corey-M/NAudio.Lame)|소리 파일 저장|
 
 # TODO
 - [x] 롤 킬 이벤트 구현
@@ -50,9 +62,11 @@ Desktop Duplication API를 이용하여 아주 빠른 화면 캡처를 할 수 �
 
 ## 녹화
 - Desktop Duplication API를 이용한 스크린샷 저장
-- 스크린샷 데이터 변환 (Bitmap -> Mat) => 큐로 Mat 저장 => dequeue 반복하고 VideoWriter에 저장
+- 스크린샷 => 데이터 변환 (Bitmap -> byte[]) => [MessagePack](https://github.com/neuecc/MessagePack-CSharp)으로 데이터 압축 및 Serialize => 큐로 [ScreenCaptured](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/ScreenCaptured.cs) 저장 => pop 반복하고 데이터 압축 해제 및 Deserialize => VideoWriter에 저장
+  - [#3](https://github.com/Nextop-OpenCV/ProjectReinforced/issues/3) 참고
 
 ## 녹음
+
 
 ## 동영상 저장
 
