@@ -115,7 +115,7 @@ namespace ProjectReinforced.Recording
 
                     if (frame != null)
                     {
-                        Size size = frame.Size.ToOpenCvSharpSize();
+                        Size size = frame.Size.ToOpenCvSize();
 
                         //해상도 조절
                         if (resolution != 0)
@@ -141,7 +141,10 @@ namespace ProjectReinforced.Recording
                     {
                         if (lastScreen != null)
                         {
-                            lastScreen.CountToUse++;
+                            sw.Stop();
+                            lastScreen.ElapsedMilliseconds += sw.ElapsedMilliseconds;
+
+                            sw.Reset();
                         }
                     }
                 }
@@ -206,6 +209,7 @@ namespace ProjectReinforced.Recording
                 if (lastScreen == null || lastScreen.CountToUse == 0)
                 {
                     lastScreen?.Frame?.Dispose(); //lastScreen 변수가 null이면 이 함수는 실행되지 않음
+
                     lastScreen = _screenshots.Dequeue();
                     lastScreen.CountToUse = Math.Max((int)lastScreen.ElapsedMilliseconds / frameDelay, 1); //스크린샷을 하는 데 걸린 시간을 기준으로 재활용 값 설정
                 }

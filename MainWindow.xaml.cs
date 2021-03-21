@@ -67,7 +67,7 @@ namespace ProjectReinforced
             _ = Task.Run(Screen.WorkForRecordingAsync); //녹화 스레드
 
             this.SizeToContent = SizeToContent.WidthAndHeight;
-            await Screen.RecordTestForDebugAsync(10000, 60.0, 15, 5);
+            await Screen.RecordTestForDebugAsync(15000, 60.0, 15, 5);
         }
 
         private void MainWindow_Closing(object sender, CancelEventArgs e)

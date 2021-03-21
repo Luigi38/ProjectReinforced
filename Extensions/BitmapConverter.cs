@@ -38,7 +38,7 @@ namespace ProjectReinforced.Extensions
             return bitmap;
         }
 
-        public static OpenCvSharp.Size ToOpenCvSharpSize(this Size size)
+        public static OpenCvSharp.Size ToOpenCvSize(this Size size)
         {
             return new OpenCvSharp.Size(size.Width, size.Height);
         }

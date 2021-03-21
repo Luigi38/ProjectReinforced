@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
-using K4os.Compression.LZ4;
+using MessagePack;
 
 using ProjectReinforced.Extensions;
 
@@ -19,34 +19,15 @@ namespace ProjectReinforced.Recording
     /// </summary>
     public class ScreenCaptured
     {
-        private readonly byte[] _frameData;
-        private readonly int _frameDataLength;
-        private readonly int _frameWidth;
-        private readonly int _frameHeight;
-        private readonly PixelFormat _framePixelFormat;
-
-        private Mat _frame;
+        /// <summary>
+        /// MessagePack을 위한 LZ4 압축 옵션
+        /// </summary>
+        public static MessagePackSerializerOptions LZ4_OPTIONS = MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray);
 
         /// <summary>
-        /// 현재 프레임 (압축 해제 -> 비트맵으로 변환 -> Mat으로 변환)
+        /// 현재 프레임 데이터
         /// </summary>
-        public Mat Frame
-        {
-            get
-            {
-                if (_frame != null) return _frame;
-
-                byte[] data = new byte[_frameDataLength];
-                LZ4Codec.Decode(_frameData, 0, _frameData.Length, data, 0, data.Length);
-
-                Bitmap bitmap = data.ToBitmap(_frameWidth, _frameHeight, _framePixelFormat);
-
-                _frame = bitmap.ToMat();
-                bitmap.Dispose();
-
-                return _frame;
-            }
-        }
+        private byte[] FrameData { get; set; }
 
         /// <summary>
         /// 프레임을 재사용할 횟수. 기본값은 1
@@ -58,19 +39,40 @@ namespace ProjectReinforced.Recording
         /// </summary>
         public long ElapsedMilliseconds { get; set; }
 
+        private Mat _frame;
+
+        /// <summary>
+        /// 현재 프레임
+        /// </summary>
+        public Mat Frame
+        {
+            get
+            {
+                if (_frame != null)
+                {
+                    return _frame;
+                }
+
+                byte[] data = MessagePackSerializer.Deserialize<byte[]>(FrameData, LZ4_OPTIONS);
+                Bitmap bitmap = data.ToBitmap(FrameWidth, FrameHeight, FramePixelFormat);
+                _frame = bitmap.ToMat();
+
+                bitmap.Dispose();
+                return _frame;
+            }
+        }
+
         public Size FrameSize { get; }
+        public int FrameWidth { get; }
+        public int FrameHeight { get; }
+        public PixelFormat FramePixelFormat { get; }
 
         public ScreenCaptured(Bitmap frame, Size frameSize, long elapsedMilliseconds)
         {
-            byte[] sourceData = frame.ToArray();
-
-            _frameData = new byte[LZ4Codec.MaximumOutputSize(sourceData.Length)];
-            LZ4Codec.Encode(sourceData, 0, sourceData.Length, _frameData, 0, _frameData.Length);
-
-            _frameDataLength = sourceData.Length;
-            _frameWidth = frame.Width;
-            _frameHeight = frame.Height;
-            _framePixelFormat = frame.PixelFormat;
+            FrameData = MessagePackSerializer.Serialize(frame.ToArray(), LZ4_OPTIONS);
+            FrameWidth = frame.Width;
+            FrameHeight = frame.Height;
+            FramePixelFormat = frame.PixelFormat;
             FrameSize = frameSize;
 
             ElapsedMilliseconds = elapsedMilliseconds;
