@@ -43,12 +43,12 @@ namespace ProjectReinforced.Recording
             public int Width => right - left;
             public int Height => bottom - top;
 
-            public static implicit operator Rectangle(RECT rect)
+            public static explicit operator Rectangle(RECT rect)
             {
                 return new Rectangle(rect.left, rect.top, rect.Width, rect.Height);
             }
 
-            public static implicit operator Size(RECT rect)
+            public static explicit operator Size(RECT rect)
             {
                 return new Size(rect.Width, rect.Height);
             }
@@ -82,7 +82,7 @@ namespace ProjectReinforced.Recording
 
             if (Win32.GetWindowRect(game.GameProcess.MainWindowHandle, ref rect))
             {
-                await Task.Run(() => Start(game, rect));
+                await Task.Run(() => Start(game, (Rectangle)rect));
             }
             else
             {
