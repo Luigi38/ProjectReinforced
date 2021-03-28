@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 using NAudio;
 using NAudio.CoreAudioApi;
@@ -135,24 +136,43 @@ namespace ProjectReinforced.Recording
                 InitializeCaptureOut();
             }
 
-            void WhenDataAvailable(WaveInEventArgs e, ref Queue<WaveInEventArgs> waves)
-            {
-                byte[] buffer = new byte[e.BytesRecorded];
-                Buffer.BlockCopy(e.Buffer, 0, buffer, 0, e.BytesRecorded);
+            Stopwatch sw = new Stopwatch();
 
-                WaveInEventArgs waveIn = new WaveInEventArgs(buffer, e.BytesRecorded);
+            void WhenDataAvailable(WaveInEventArgs e, WaveFormat format, ref Queue<WaveInEventArgs> waves)
+            {
+                sw.Stop();
+                WaveInEventArgs waveIn = null;
+
+                if (e.BytesRecorded == 0)
+                {
+                    int bytesPerMillisecond = format.AverageBytesPerSecond / 1000;
+                    int bytesRecorded = (int)sw.ElapsedMilliseconds * bytesPerMillisecond;
+
+                    byte[] buffer = new byte[bytesRecorded];
+                    waveIn = new WaveInEventArgs(buffer, bytesRecorded);
+                }
+                else
+                {
+                    byte[] buffer = new byte[e.BytesRecorded];
+                    Buffer.BlockCopy(e.Buffer, 0, buffer, 0, e.BytesRecorded);
+
+                    waveIn = new WaveInEventArgs(buffer, e.BytesRecorded);
+                }
                 waves.Enqueue(waveIn);
+
+                sw.Reset();
+                sw.Start();
             }
 
             _capture.DataAvailable += (s, e) =>
             {
-                WhenDataAvailable(e, ref _sounds);
+                WhenDataAvailable(e, _capture.WaveFormat, ref _sounds);
             };
             if (includeMic) //마이크
             {
                 _captureMic.DataAvailable += (s, e) =>
                 {
-                    WhenDataAvailable(e, ref _soundsMic);
+                    WhenDataAvailable(e, _captureMic.WaveFormat, ref _soundsMic);
                 };
             }
 
@@ -196,14 +216,18 @@ namespace ProjectReinforced.Recording
                 return string.Empty;
             }
 
-            var includeMic = _captureMic.CaptureState == CaptureState.Capturing;
+            var includeMic = _captureMic != null && _captureMic.CaptureState == CaptureState.Capturing;
 
             //소리 녹음 중지
             _capture.StopRecording();
-            _captureMic.StopRecording();
+            if (includeMic)
+            {
+                _captureMic.StopRecording();
+            }
 
             string speakerPath = includeMic ? MainWindow.GetTempFileName("mp3") : path;
 
+            //Queue에 있던 소리 데이터를 Mp3에 데이터 저장
             using (var writer = new LameMP3FileWriter(speakerPath, _capture.WaveFormat, 128))
             {
                 while (_sounds.Count > 0)

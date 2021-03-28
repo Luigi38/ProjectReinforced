@@ -28,7 +28,10 @@ namespace ProjectReinforced.Clients
 
         public static GameType CurrentGame => CurrentClient?.GAME_TYPE ?? GameType.None;
 
-        private static readonly IGameClient[] _clients = {Lol, R6};
+        private static readonly IGameClient[] _clients = { Lol, R6 };
+
+        public const string USER_AGENT =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0";
 
         public static async Task Initialize()
         {

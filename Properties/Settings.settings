@@ -15,7 +15,7 @@
       <Value Profile="(Default)">5</Value>
     </Setting>
     <Setting Name="Screen_FourCC" Type="System.String" Scope="User">
-      <Value Profile="(Default)">H265</Value>
+      <Value Profile="(Default)">HEVC</Value>
     </Setting>
   </Settings>
 </SettingsFile>

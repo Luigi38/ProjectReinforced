@@ -18,6 +18,7 @@ using ProjectReinforced.Clients;
 using ProjectReinforced.Recording;
 using ProjectReinforced.Types;
 using ProjectReinforced.Others;
+using ProjectReinforced.Properties;
 
 namespace ProjectReinforced.Clients.Lol
 {
@@ -33,9 +34,6 @@ namespace ProjectReinforced.Clients.Lol
 
         private const string SESSION_URL = "https://127.0.0.1:2999/liveclientdata/eventdata";
         private const string SESSION_HOST = "127.0.0.1:2999";
-
-        private const string USER_AGENT =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0";
 
         /// <summary>
         /// 리그 오브 레전드 클라이언트 API
@@ -90,6 +88,8 @@ namespace ProjectReinforced.Clients.Lol
         private async void LolClient_OnKill(object sender, Kda kda)
         {
             HighlightInfo info = new HighlightInfo("Kill", DateTime.Now, GAME_TYPE);
+            await Task.Delay(Settings.Default.Screen_RecordTimeAfterHighlight * 1000);
+
             Highlight kill = await Screen.StopAsync(info);
 
             if (kill != null)
@@ -133,13 +133,7 @@ namespace ProjectReinforced.Clients.Lol
                 using (HttpClient httpClient = new HttpClient())
                 {
                     //Http 클라이언트 초깃값 설정
-                    ServicePointManager.Expect100Continue = true;
-                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls |
-                                                           SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-                    ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-
-                    httpClient.DefaultRequestHeaders.Host = SESSION_HOST;
-                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(USER_AGENT);
+                    InitializeHttpClient(httpClient);
 
                     //무한반복문
                     while (true)
@@ -238,6 +232,21 @@ namespace ProjectReinforced.Clients.Lol
 
             Enum.TryParse(response, out GameflowPhaseType phase);
             return phase;
+        }
+
+        /// <summary>
+        /// Http 클라이언트의 초깃값을 설정합니다.
+        /// </summary>
+        /// <param name="httpClient">Http 클라이언트</param>
+        private void InitializeHttpClient(HttpClient httpClient)
+        {
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls |
+                                                   SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
+            httpClient.DefaultRequestHeaders.Host = SESSION_HOST;
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(ClientManager.USER_AGENT);
         }
     }
 }

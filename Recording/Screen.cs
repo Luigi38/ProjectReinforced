@@ -471,7 +471,7 @@ namespace ProjectReinforced.Recording
         /// <returns></returns>
         public static async Task AddAudio(string videoPath, string audioPath, string outPath)
         {
-            string args = $"-i \"{videoPath}\" -i \"{audioPath}\" \"{outPath}\"";
+            string args = $"-i \"{videoPath}\" -i \"{audioPath}\" -preset ultrafast -tune fastdecode -shortest \"{outPath}\"";
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 CreateNoWindow = true,
