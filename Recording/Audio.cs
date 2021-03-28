@@ -27,14 +27,38 @@ namespace ProjectReinforced.Recording
         /// <summary>
         /// 기본 마이크 장치
         /// </summary>
-        private static MMDevice DefaultMMDeviceIn =>
-            WasapiCapture.GetDefaultCaptureDevice();
+        private static MMDevice DefaultMMDeviceIn
+        {
+            get
+            {
+                try
+                {
+                    return WasapiCapture.GetDefaultCaptureDevice();
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+        }
 
         /// <summary>
         /// 기본 스피커 장치
         /// </summary>
-        private static MMDevice DefaultMMDeviceOut =>
-            WasapiLoopbackCapture.GetDefaultLoopbackCaptureDevice();
+        private static MMDevice DefaultMMDeviceOut
+        {
+            get
+            {
+                try
+                {
+                    return WasapiLoopbackCapture.GetDefaultLoopbackCaptureDevice();
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+        }
 
         private static string _prevInDeviceId = string.Empty;
         private static string _prevOutDeviceId = string.Empty;
@@ -60,8 +84,11 @@ namespace ProjectReinforced.Recording
         /// </summary>
         private static void InitializeCaptureIn()
         {
-            _captureMic = new WasapiCapture(DefaultMMDeviceIn);
-            _prevInDeviceId = DefaultMMDeviceIn.ID;
+            if (DefaultMMDeviceIn != null)
+            {
+                _captureMic = new WasapiCapture(DefaultMMDeviceIn);
+                _prevInDeviceId = DefaultMMDeviceIn.ID;
+            }
         }
 
         /// <summary>
@@ -69,8 +96,20 @@ namespace ProjectReinforced.Recording
         /// </summary>
         private static void InitializeCaptureOut()
         {
-            _capture = new WasapiLoopbackCapture(DefaultMMDeviceOut);
-            _prevOutDeviceId = DefaultMMDeviceOut.ID;
+            if (DefaultMMDeviceOut != null)
+            {
+                _capture = new WasapiLoopbackCapture(DefaultMMDeviceOut);
+                _prevOutDeviceId = DefaultMMDeviceOut.ID;
+            }
+        }
+
+        /// <summary>
+        /// 컴퓨터 소리를 녹음합니다.
+        /// </summary>
+        /// <returns>정상적으로 녹음이 되고 있는지의 여부</returns>
+        public static bool Record()
+        {
+            return Record(DefaultMMDeviceIn != null);
         }
 
         /// <summary>
@@ -80,13 +119,13 @@ namespace ProjectReinforced.Recording
         /// <returns>정상적으로 녹음이 되고 있는지의 여부</returns>
         public static bool Record(bool includeMic)
         {
-            if (!IsInitialized)
+            if (!IsInitialized || DefaultMMDeviceOut == null)
             {
                 return false;
             }
 
             //기본 입력 장치를 바꾼 경우
-            if (_prevInDeviceId != DefaultMMDeviceIn.ID)
+            if (includeMic && _prevInDeviceId != DefaultMMDeviceIn.ID)
             {
                 InitializeCaptureIn();
             }
@@ -152,7 +191,7 @@ namespace ProjectReinforced.Recording
         /// <returns>성공적으로 중지되면 파일 경로를 반환하고 그렇지 않으면 빈 문자열 (string.Empty)를 반환합니다.</returns>
         public static async Task<string> StopAsync(string path)
         {
-            if (string.IsNullOrWhiteSpace(path))
+            if (string.IsNullOrWhiteSpace(path) || _capture.CaptureState != CaptureState.Capturing)
             {
                 return string.Empty;
             }

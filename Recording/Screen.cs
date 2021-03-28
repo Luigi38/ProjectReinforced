@@ -107,7 +107,7 @@ namespace ProjectReinforced.Recording
             IsRecording = true;
 
             //소리 녹음
-
+            Audio.Record();
 
             //스크린샷 시 실행 되는 코드
             while (IsRecording)
@@ -118,8 +118,18 @@ namespace ProjectReinforced.Recording
 
                     if (!isUnfixed && _frames.Count > maxSize)
                     {
-                        ScreenCaptured sc = _frames.Dequeue();
-                        sc.Frame.Dispose();
+                        ScreenCaptured sc = _frames.Peek();
+
+                        if (sc.CountToUse == 0) //CountToUse 값 할당 (Elapsed 기준)
+                        {
+                            sc.CountToUse = sc.GetCountToUseByElapsed((int)fps);
+                        }
+
+                        if (--sc.CountToUse == 0)
+                        {
+                            sc.Frame.Dispose();
+                            _frames.Dequeue();
+                        }
                     }
 
                     //프레임 가져오기
@@ -173,7 +183,7 @@ namespace ProjectReinforced.Recording
             }
         }
 
-        public static Highlight Stop(HighlightInfo info)
+        private static async Task<Highlight> Stop(HighlightInfo info)
         {
             if (_frames.Count <= 0 || !IsRecording) return null;
 
@@ -188,6 +198,9 @@ namespace ProjectReinforced.Recording
             IsRecording = false;
             _isWorking = true;
 
+            string audioPath = await Audio.StopAsync();
+            bool audioAvailable = !string.IsNullOrWhiteSpace(audioPath);
+
             Highlight highlight = new Highlight(info);
             FourCC fcc = FourCC.FromString(Settings.Default.Screen_FourCC);
 
@@ -195,7 +208,8 @@ namespace ProjectReinforced.Recording
 
             Size size = _frames.Peek().FrameSize;
 
-            string path = Highlight.GetVideoPath(info);
+            string outputPath = Highlight.GetVideoPath(info);
+            string path = audioAvailable ? MainWindow.GetTempFileName("mp4") : outputPath;
             string directoryPath = Path.GetDirectoryName(path);
 
             //고정되지 않은 프레임 방식 (저장된 프레임의 수에 따라서 fps가 결정됨)
@@ -236,6 +250,16 @@ namespace ProjectReinforced.Recording
             }
 
             _videoWriter.Release();
+
+            //영상 및 소리 합병
+            if (audioAvailable && !string.IsNullOrWhiteSpace(FFmpegExecutablePath))
+            {
+                await AddAudio(path, audioPath, outputPath);
+
+                //합병됐으므로 영상 및 소리 파일 삭제
+                File.Delete(path);
+                File.Delete(audioPath);
+            }
             _isWorking = false;
 
             return highlight;
@@ -249,13 +273,7 @@ namespace ProjectReinforced.Recording
         #region Record Function
         public static void RecordForDebug(double fps, int seconds)
         {
-            RECT rect = new RECT //1920x1080 해상도
-            {
-                left = 0,
-                top = 0,
-                right = 1920,
-                bottom = 1080
-            };
+            Rectangle rect = new Rectangle(0, 0, 1920, 1080); //1920x1080 해상도
             Size size = new Size(1920, 1080);
 
             Task.Run(() => StartForDebug(rect, size, fps, seconds));
@@ -267,7 +285,6 @@ namespace ProjectReinforced.Recording
             bool isUnfixed = (int)fps == 0;
             //큐의 최대 크기 (고정되지 않은 프레임 방식이면 무한)
             int maxSize = !isUnfixed ? (int)fps * seconds : -1;
-            int frameDelay = !isUnfixed ? 1000 / (int)fps : 0;
 
             ScreenCaptured lastScreen = null;
 
@@ -275,7 +292,7 @@ namespace ProjectReinforced.Recording
             IsRecording = true;
 
             //소리 녹음
-            Audio.Record(true);
+            Audio.Record();
 
             while (IsRecording)
             {
@@ -283,8 +300,18 @@ namespace ProjectReinforced.Recording
 
                 if (!isUnfixed && _frames.Count > maxSize)
                 {
-                    ScreenCaptured sc = _frames.Dequeue();
-                    sc.Frame.Dispose();
+                    ScreenCaptured sc = _frames.Peek();
+
+                    if (sc.CountToUse == 0) //CountToUse 값 할당 (Elapsed 기준)
+                    {
+                        sc.CountToUse = sc.GetCountToUseByElapsed((int)fps);
+                    }
+
+                    if (--sc.CountToUse == 0)
+                    {
+                        sc.Frame.Dispose();
+                        _frames.Dequeue();
+                    }
                 }
 
                 //프레임 가져오기
@@ -323,9 +350,8 @@ namespace ProjectReinforced.Recording
             {
                 return 0;
             }
-;
+
             bool isUnfixed = (int)fps == 0;
-            int frameDelay = !isUnfixed ? 1000 / (int)fps : 0;
             if (secondsAfterHighlight > 0) Thread.Sleep(secondsAfterHighlight * 1000);
 
             IsRecording = false;
@@ -368,7 +394,7 @@ namespace ProjectReinforced.Recording
                     lastScreen?.Frame?.Dispose(); //lastScreen 변수가 null이면 이 함수는 실행되지 않음
 
                     lastScreen = _frames.Dequeue();
-                    lastScreen.CountToUse = Math.Max((int)lastScreen.ElapsedMilliseconds / frameDelay, 1); //스크린샷을 하는 데 걸린 시간을 기준으로 재활용 값 설정
+                    lastScreen.CountToUse = lastScreen.GetCountToUseByElapsed((int)fps);
                 }
 
                 if (lastScreen.Frame.Size() != size)

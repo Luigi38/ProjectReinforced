@@ -76,7 +76,13 @@ namespace ProjectReinforced.Recording
             FrameSize = frameSize;
 
             ElapsedMilliseconds = elapsedMilliseconds;
-            CountToUse = 1;
+            CountToUse = 0;
+        }
+
+        public int GetCountToUseByElapsed(int fps)
+        {
+            int delay = 1000 / fps;
+            return Math.Max((int)ElapsedMilliseconds / delay, 1); //스크린샷을 하는 데 걸린 시간을 기준으로 재활용 값 설정
         }
     }
 }
