@@ -47,7 +47,7 @@ Desktop Duplication API를 이용하여 아주 빠른 화면 캡처를 할 수 �
 ## 소리 녹음
 |API 이름|설명|참조|
 |:---:|:---:|:---:|
-|[NAudio](https://github.com/naudio/NAudio)|사운드 장치 캡처 (녹음) 및 소리 합병|[Audio.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Audio.cs)|
+|[NAudio](https://github.com/naudio/NAudio)|[사운드 장치 캡처 (녹음) 및 소리 합병](https://github.com/Nextop-OpenCV/ProjectReinforced/issues/3)|[Audio.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Audio.cs)|
 |[NAudio.Lame](https://github.com/Corey-M/NAudio.Lame)|소리 파일 저장|[Audio.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Audio.cs#L203)|
 |[FFmpeg](https://ffmpeg.org/)|[영상 및 소리 합병](https://github.com/Nextop-OpenCV/ProjectReinforced/issues/5)|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs#L472)|
 
