@@ -15,9 +15,9 @@ namespace ProjectReinforced.Clients.R6
     /// </summary>
     public class RainbowClient : IGameClient
     {
-        public GameType GAME_TYPE { get; } = GameType.R6;
-        public string PROCESS_NAME { get; } = "RainbowSix";
-        public string PROCESS_TITLE { get; } = "Rainbow Six Siege";
+        public GameType GAME_TYPE => GameType.R6;
+        public string PROCESS_NAME => "RainbowSix";
+        public string PROCESS_TITLE => "Rainbow Six Siege";
 
         public int Client { get; set; }
 
@@ -34,12 +34,12 @@ namespace ProjectReinforced.Clients.R6
         public bool IsActive => ClientManager.IsActive(PROCESS_NAME);
         public bool IsInitialized { get; private set; }
 
-        public Kda Kda { get; private set; }
+        public Kda Statistics { get; private set; }
 
         public RainbowClient()
         {
             this.Client = 0;
-            this.Kda = new Kda(true);
+            this.Statistics = new Kda(true);
         }
 
         public async Task InitializeAsync()

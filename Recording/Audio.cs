@@ -7,6 +7,7 @@ using System.Diagnostics;
 using NAudio;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 using NAudio.Lame;
 
 namespace ProjectReinforced.Recording
@@ -138,10 +139,10 @@ namespace ProjectReinforced.Recording
 
             Stopwatch sw = new Stopwatch();
 
-            void WhenDataAvailable(WaveInEventArgs e, WaveFormat format, ref Queue<WaveInEventArgs> waves)
+            void WhenDataAvailable(WaveInEventArgs e, WaveFormat format, Queue<WaveInEventArgs> waves)
             {
                 sw.Stop();
-                WaveInEventArgs waveIn = null;
+                WaveInEventArgs waveIn;
 
                 if (e.BytesRecorded == 0)
                 {
@@ -166,13 +167,13 @@ namespace ProjectReinforced.Recording
 
             _capture.DataAvailable += (s, e) =>
             {
-                WhenDataAvailable(e, _capture.WaveFormat, ref _sounds);
+                WhenDataAvailable(e, _capture.WaveFormat, _sounds);
             };
             if (includeMic) //마이크
             {
                 _captureMic.DataAvailable += (s, e) =>
                 {
-                    WhenDataAvailable(e, _captureMic.WaveFormat, ref _soundsMic);
+                    WhenDataAvailable(e, _captureMic.WaveFormat, _soundsMic);
                 };
             }
 
@@ -225,86 +226,89 @@ namespace ProjectReinforced.Recording
                 _captureMic.StopRecording();
             }
 
-            string speakerPath = includeMic ? MainWindow.GetTempFileName("mp3") : path;
-
-            //Queue에 있던 소리 데이터를 Mp3에 데이터 저장
-            using (var writer = new LameMP3FileWriter(speakerPath, _capture.WaveFormat, 128))
+            //마이크까지 녹음이 된 경우
+            if (includeMic)
             {
-                while (_sounds.Count > 0)
+                await MergeMp3(_sounds, _soundsMic, _capture.WaveFormat, path);
+            }
+            else
+            {
+                //Queue에 있던 소리 데이터를 Mp3에 데이터 저장
+                using (var writer = new LameMP3FileWriter(path, _capture.WaveFormat, 128))
                 {
-                    WaveInEventArgs waveIn = _sounds.Dequeue();
-                    await writer.WriteAsync(waveIn.Buffer, 0, waveIn.BytesRecorded);
+                    while (_sounds.Count > 0)
+                    {
+                        WaveInEventArgs waveIn = _sounds.Dequeue();
+                        await writer.WriteAsync(waveIn.Buffer, 0, waveIn.BytesRecorded);
+                    }
                 }
             }
-
-            //마이크를 녹음하지 않은 경우 끝났으므로 반환
-            if (!includeMic)
-            {
-                return path;
-            }
-
-            string micPath = MainWindow.GetTempFileName("mp3");
-
-            using (var writer = new LameMP3FileWriter(micPath, _captureMic.WaveFormat, 128))
-            {
-                while (_soundsMic.Count > 0)
-                {
-                    WaveInEventArgs waveIn = _soundsMic.Dequeue();
-                    await writer.WriteAsync(waveIn.Buffer, 0, waveIn.BytesRecorded);
-                }
-            }
-
-            MergeMp3(new[] {speakerPath, micPath}, path);
-
-            //파일을 합쳤으므로 스피커 및 마이크 소리 파일 제거
-            File.Delete(speakerPath);
-            File.Delete(micPath);
 
             return path;
         }
 
         /// <summary>
-        /// 여러 소리 파일을 한 파일로 합칩니다. (https://gist.github.com/gautamdhameja/e71317748e446bd85bb0875a0e64d6d5)
+        /// 두 개의 소리 파일을 한 파일로 합칩니다. (BufferedWaveProvider 이용)
         /// </summary>
-        /// <param name="paths">여러 소리 파일 경로</param>
+        /// <param name="data1">소리 데이터 1</param>
+        /// <param name="data2">소리 데이터 2</param>
+        /// <param name="wf">소리 데이터 1의 WaveFormat</param>
         /// <param name="outPath">한 파일로 합칠 파일 경로</param>
-        public static void MergeMp3(string[] paths, string outPath)
+        public static async Task MergeMp3(Queue<WaveInEventArgs> data1, Queue<WaveInEventArgs> data2, WaveFormat wf, string outPath)
         {
-            // Create a mixer object
-            // This will be used for merging files together
-            var mixer = new WaveMixerStream32
+            var bwp1 = new BufferedWaveProvider(wf)
             {
-                AutoStop = true
+                DiscardOnBufferOverflow = true,
+                BufferDuration = TimeSpan.FromMinutes(3)
+            };
+            var bwp2 = new BufferedWaveProvider(wf)
+            {
+                DiscardOnBufferOverflow = true,
+                BufferDuration = TimeSpan.FromMinutes(3)
             };
 
-            foreach (var path in paths)
+            var msp = new MixingSampleProvider(wf);
+
+            void Apply(BufferedWaveProvider bwp, Queue<WaveInEventArgs> data)
             {
-                if (File.Exists(path))
+                while (data.Count > 0)
                 {
-                    // create mp3 reader object
-                    var reader = new Mp3FileReader(path);
+                    WaveInEventArgs waveIn = data.Dequeue();
 
-                    // create a wave stream and a channel object
-                    var waveStream = WaveFormatConversionStream.CreatePcmStream(reader);
-                    var channel = new WaveChannel32(waveStream)
+                    if (waveIn.BytesRecorded > 0)
                     {
-                        //Set the volume
-                        Volume = 0.5f
-                    };
-
-                    // add channel as an input stream to the mixer
-                    mixer.AddInputStream(channel);
+                        bwp.AddSamples(waveIn.Buffer, 0, waveIn.BytesRecorded);
+                    }
                 }
             }
 
-            // convert wave stream from mixer to mp3
-            var wave32 = new Wave32To16Stream(mixer);
-            var mp3Writer = new LameMP3FileWriter(outPath, wave32.WaveFormat, 128);
-            wave32.CopyTo(mp3Writer);
+            Apply(bwp1, data1);
+            Apply(bwp2, data2);
 
-            // close all streams
-            wave32.Close();
-            mp3Writer.Close();
+            var volume1 = new VolumeSampleProvider(bwp1.ToSampleProvider())
+            {
+                Volume = 0.5f
+            };
+            var volume2 = new VolumeSampleProvider(bwp2.ToSampleProvider())
+            {
+                Volume = 0.5f
+            };
+
+            var rp2 = new WdlResamplingSampleProvider(volume2, wf.SampleRate);
+
+            msp.AddMixerInput(volume1);
+            msp.AddMixerInput(rp2);
+
+            var wave = msp.ToWaveProvider();
+            var bufferLength = Math.Max(bwp1.BufferLength, bwp2.BufferLength);
+
+            using (var writer = new LameMP3FileWriter(outPath, wf, 128))
+            {
+                byte[] buffer = new byte[bufferLength];
+                wave.Read(buffer, 0, bufferLength);
+
+                await writer.WriteAsync(buffer, 0, bufferLength);
+            }
         }
     }
 }

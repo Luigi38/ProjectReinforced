@@ -44,7 +44,7 @@ namespace ProjectReinforced.Clients
         /// <summary>
         /// 킬/데스/어시스트
         /// </summary>
-        Kda Kda { get; }
+        Kda Statistics { get; }
 
         /// <summary>
         /// 현재 게임 프로세스

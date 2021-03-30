@@ -28,9 +28,9 @@ namespace ProjectReinforced.Clients.Lol
     public class LolClient : IGameClient
     {
         //상수 선언
-        public GameType GAME_TYPE { get; } = GameType.Lol;
-        public string PROCESS_NAME { get; } = "League of Legends";
-        public string PROCESS_TITLE { get; } = "League of Legends (TM) Client";
+        public GameType GAME_TYPE => GameType.Lol;
+        public string PROCESS_NAME => "League of Legends";
+        public string PROCESS_TITLE => "League of Legends (TM) Client";
 
         private const string SESSION_URL = "https://127.0.0.1:2999/liveclientdata/eventdata";
         private const string SESSION_HOST = "127.0.0.1:2999";
@@ -53,7 +53,7 @@ namespace ProjectReinforced.Clients.Lol
         public bool IsActive => ClientManager.IsActive(PROCESS_TITLE);
         public bool IsInitialized { get; private set; }
 
-        public Kda Kda { get; private set; }
+        public Kda Statistics { get; private set; }
 
         private LolLiveEvent _latestEvent = LolLiveEvent.Empty;
 
@@ -67,7 +67,7 @@ namespace ProjectReinforced.Clients.Lol
 
         public LolClient()
         {
-            Kda = new Kda(true);
+            Statistics = new Kda(true);
 
             OnKill += LolClient_OnKill;
             OnDeath += LolClient_OnDeath;
@@ -175,18 +175,18 @@ namespace ProjectReinforced.Clients.Lol
                                             {
                                                 if (currentEvent.KillerName == userName) //킬
                                                 {
-                                                    Kda.Kills++;
-                                                    OnKill?.Invoke(currentEvent, Kda);
+                                                    Statistics.Kills++;
+                                                    OnKill?.Invoke(currentEvent, Statistics);
                                                 }
                                                 else if (currentEvent.VictimName == userName) //죽음
                                                 {
-                                                    Kda.Deaths++;
-                                                    OnDeath?.Invoke(currentEvent, Kda);
+                                                    Statistics.Deaths++;
+                                                    OnDeath?.Invoke(currentEvent, Statistics);
                                                 }
                                                 else if (currentEvent.Assisters.Contains(userName)) //어시스트
                                                 {
-                                                    Kda.Assists++;
-                                                    OnAssist?.Invoke(currentEvent, Kda);
+                                                    Statistics.Assists++;
+                                                    OnAssist?.Invoke(currentEvent, Statistics);
                                                 }
                                             }
                                         }
