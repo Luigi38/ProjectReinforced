@@ -40,15 +40,16 @@ Desktop Duplication API를 이용하여 아주 빠른 화면 캡처를 할 수 �
 ## 화면 녹화
 |API 이름|설명|참조|
 |:---:|:---:|:---:|
-|[OpenCVSharp](https://github.com/shimat/opencvsharp)|OpenCV|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs)|
-|[desktop-duplication-net](https://github.com/jasonpang/desktop-duplication-net)|화면 캡처|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs)|
+|[OpenCVSharp](https://github.com/shimat/opencvsharp)|OpenCV|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs#L186)|
+|[desktop-duplication-net](https://github.com/jasonpang/desktop-duplication-net)|화면 캡처|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs#L442)|
 |[MessagePack-CSharp](https://github.com/neuecc/MessagePack-CSharp)|데이터 압축|[ScreenCaptured.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/ScreenCaptured.cs)|
 
 ## 소리 녹음
 |API 이름|설명|참조|
 |:---:|:---:|:---:|
-|[NAudio](https://github.com/naudio/NAudio)|소리 녹음|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs)|
-|[NAudio.Lame](https://github.com/Corey-M/NAudio.Lame)|소리 파일 저장|
+|[NAudio](https://github.com/naudio/NAudio)|사운드 장치 캡처 (녹음) 및 소리 합병|[Audio.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Audio.cs)|
+|[NAudio.Lame](https://github.com/Corey-M/NAudio.Lame)|소리 파일 저장|[Audio.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Audio.cs#L203)|
+|[FFmpeg](https://ffmpeg.org/)|[영상 및 소리 합병](https://github.com/Nextop-OpenCV/ProjectReinforced/issues/5)|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs#L472)|
 
 # TODO
 - [x] 롤 킬 이벤트 구현
@@ -63,10 +64,11 @@ Desktop Duplication API를 이용하여 아주 빠른 화면 캡처를 할 수 �
 ## 녹화
 - Desktop Duplication API를 이용한 스크린샷 저장
 - 스크린샷 => 데이터 변환 (Bitmap -> byte[]) => [MessagePack](https://github.com/neuecc/MessagePack-CSharp)으로 데이터 압축 및 Serialize => 큐로 [ScreenCaptured](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/ScreenCaptured.cs) 저장 => pop 반복하고 데이터 압축 해제 및 Deserialize => VideoWriter에 저장
-  - [#3](https://github.com/Nextop-OpenCV/ProjectReinforced/issues/3) 참고
+  - [#6](https://github.com/Nextop-OpenCV/ProjectReinforced/issues/6) 참고
 
 ## 녹음
-
+- NAudio의 WasapiCapture 및 WasapiLoopbackCapture를 통해 사운드 캡처 => 큐로 데이터 저장 => pop 반복 => `MergeMp3()` 함수를 통한 소리 합병
+  - [#3](https://github.com/Nextop-OpenCV/ProjectReinforced/issues/3), [Audio.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Audio.cs) 참고
 
 ## 동영상 저장
 
