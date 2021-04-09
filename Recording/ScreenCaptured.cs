@@ -53,26 +53,25 @@ namespace ProjectReinforced.Recording
                     return _frame;
                 }
 
-                byte[] data = MessagePackSerializer.Deserialize<byte[]>(FrameData, LZ4_OPTIONS);
-                Bitmap bitmap = data.ToBitmap(FrameWidth, FrameHeight, FramePixelFormat);
-                _frame = bitmap.ToMat();
+                _frame = new Mat(new Size(FrameWidth, FrameHeight), MatType.CV_8UC4);
 
-                bitmap.Dispose();
+                byte[] data = MessagePackSerializer.Deserialize<byte[]>(FrameData, LZ4_OPTIONS);
+                Marshal.Copy(data, 0, _frame.Data, data.Length);
+
                 return _frame;
             }
         }
 
         public Size FrameSize { get; }
-        public int FrameWidth { get; }
-        public int FrameHeight { get; }
-        public PixelFormat FramePixelFormat { get; }
+
+        private int FrameWidth { get; }
+        private int FrameHeight { get; }
 
         public ScreenCaptured(Bitmap frame, Size frameSize, long elapsedMilliseconds)
         {
             FrameData = MessagePackSerializer.Serialize(frame.ToArray(), LZ4_OPTIONS);
             FrameWidth = frame.Width;
             FrameHeight = frame.Height;
-            FramePixelFormat = frame.PixelFormat;
             FrameSize = frameSize;
 
             ElapsedMilliseconds = elapsedMilliseconds;
