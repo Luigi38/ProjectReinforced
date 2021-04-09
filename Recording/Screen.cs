@@ -134,7 +134,8 @@ namespace ProjectReinforced.Recording
                     }
 
                     //프레임 가져오기
-                    Mat frame = Screenshot(bounds)?.ToMat();
+                    Bitmap bitmap = Screenshot(bounds);
+                    Mat frame = bitmap?.ToMat();
 
                     if (frame != null)
                     {
@@ -158,6 +159,7 @@ namespace ProjectReinforced.Recording
                         _frames.Enqueue(lastScreen);
 
                         sw.Stop();
+                        bitmap.Dispose();
                         frame.Dispose();
                     }
                     else
@@ -316,13 +318,15 @@ namespace ProjectReinforced.Recording
                 }
 
                 //프레임 가져오기
-                Mat frame = Screenshot(bounds)?.ToMat();
+                Bitmap bitmap = Screenshot(bounds);
+                Mat frame = bitmap?.ToMat();
 
                 if (frame != null)
                 {
                     lastScreen = new ScreenCaptured(frame, size, sw.ElapsedMilliseconds);
                     _frames.Enqueue(lastScreen);
 
+                    bitmap.Dispose();
                     frame.Dispose();
 
                     sw.Stop();
