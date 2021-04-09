@@ -42,7 +42,7 @@ Desktop Duplication API를 이용하여 아주 빠른 화면 캡처를 할 수 �
 |:---:|:---:|:---:|
 |[OpenCVSharp](https://github.com/shimat/opencvsharp)|OpenCV|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs#L186)|
 |[desktop-duplication-net](https://github.com/jasonpang/desktop-duplication-net)|화면 캡처|[Screen.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Screen.cs#L442)|
-|[MessagePack-CSharp](https://github.com/neuecc/MessagePack-CSharp)|데이터 압축|[ScreenCaptured.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/ScreenCaptured.cs)|
+|[MessagePack-CSharp](https://github.com/neuecc/MessagePack-CSharp)|데이터 압축|[ScreenCaptured.cs](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Types/ScreenCaptured.cs)|
 
 ## 소리 녹음
 |API 이름|설명|참조|
@@ -63,7 +63,7 @@ Desktop Duplication API를 이용하여 아주 빠른 화면 캡처를 할 수 �
 
 ## 녹화
 - Desktop Duplication API를 이용한 스크린샷 저장
-- 스크린샷 => 데이터 변환 (Bitmap -> byte[]) => [MessagePack](https://github.com/neuecc/MessagePack-CSharp)으로 데이터 압축 및 Serialize => 큐로 [ScreenCaptured](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/ScreenCaptured.cs) 저장 => pop 반복하고 데이터 압축 해제 및 Deserialize => VideoWriter에 저장
+- 스크린샷 => 데이터 변환 (Bitmap -> byte[]) => [MessagePack](https://github.com/neuecc/MessagePack-CSharp)으로 데이터 압축 및 Serialize => 큐로 [ScreenCaptured](https://github.com/Nextop-OpenCV/ProjectReinforced/blob/main/Recording/Types/ScreenCaptured.cs) 저장 => pop 반복하고 데이터 압축 해제 및 Deserialize => VideoWriter에 저장
   - [#6](https://github.com/Nextop-OpenCV/ProjectReinforced/issues/6) 참고
 
 ## 녹음
