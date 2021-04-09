@@ -10,6 +10,8 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NAudio.Lame;
 
+using ProjectReinforced.Recording.Types;
+
 namespace ProjectReinforced.Recording
 {
     public class Audio

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.IO;
 
-using ProjectReinforced.Types;
+using ProjectReinforced.Clients.Types;
+using ProjectReinforced.Recording.Types;
 
-namespace ProjectReinforced.Recording
+namespace ProjectReinforced.Recording.Types
 {
     public class Highlight
     {

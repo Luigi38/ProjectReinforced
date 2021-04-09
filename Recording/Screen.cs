@@ -21,7 +21,8 @@ using NAudio.Wave;
 using NAudio.Lame;
 
 using ProjectReinforced.Clients;
-using ProjectReinforced.Types;
+using ProjectReinforced.Clients.Types;
+using ProjectReinforced.Recording.Types;
 using ProjectReinforced.Extensions;
 using ProjectReinforced.Others;
 using ProjectReinforced.Properties;
@@ -122,7 +123,7 @@ namespace ProjectReinforced.Recording
 
                         if (sc.CountToUse == 0) //CountToUse 값 할당 (Elapsed 기준)
                         {
-                            sc.CountToUse = sc.GetCountToUseByElapsed((int)fps);
+                            sc.CountToUse = sc.GetCountToUseByElapsed(fps);
                         }
 
                         if (--sc.CountToUse == 0)
@@ -133,11 +134,11 @@ namespace ProjectReinforced.Recording
                     }
 
                     //프레임 가져오기
-                    Bitmap frame = Screenshot(bounds);
+                    Mat frame = Screenshot(bounds)?.ToMat();
 
                     if (frame != null)
                     {
-                        Size size = frame.Size.ToOpenCvSize();
+                        Size size = frame.Size();
 
                         //해상도 조절
                         if (resolution != 0)
@@ -315,7 +316,7 @@ namespace ProjectReinforced.Recording
                 }
 
                 //프레임 가져오기
-                Bitmap frame = Screenshot(bounds);
+                Mat frame = Screenshot(bounds)?.ToMat();
 
                 if (frame != null)
                 {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using ProjectReinforced.Clients.Lol;
 using ProjectReinforced.Clients.R6;
-using ProjectReinforced.Types;
+using ProjectReinforced.Clients.Types;
 using ProjectReinforced.Others;
 
 namespace ProjectReinforced.Clients

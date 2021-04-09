@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using ProjectReinforced.Clients;
-using ProjectReinforced.Types;
+using ProjectReinforced.Clients.Types;
 
 namespace ProjectReinforced.Clients.R6
 {

@@ -20,7 +20,6 @@ using System.Windows.Shapes;
 
 using ProjectReinforced.Clients;
 using ProjectReinforced.Recording;
-using ProjectReinforced.Types;
 using ProjectReinforced.Extensions;
 
 using Path = System.IO.Path;

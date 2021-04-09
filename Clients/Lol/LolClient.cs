@@ -15,8 +15,9 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using ProjectReinforced.Clients;
+using ProjectReinforced.Clients.Types;
 using ProjectReinforced.Recording;
-using ProjectReinforced.Types;
+using ProjectReinforced.Recording.Types;
 using ProjectReinforced.Others;
 using ProjectReinforced.Properties;
 

@@ -12,7 +12,7 @@ using ProjectReinforced.Extensions;
 
 using Size = OpenCvSharp.Size;
 
-namespace ProjectReinforced.Recording
+namespace ProjectReinforced.Recording.Types
 {
     /// <summary>
     /// Desktop Duplication Api에 관한 특성을 효율적으로 사용하기 위해 만든 화면 캡처 저장 클래스
@@ -53,10 +53,8 @@ namespace ProjectReinforced.Recording
                     return _frame;
                 }
 
-                _frame = new Mat(new Size(FrameWidth, FrameHeight), MatType.CV_8UC4);
-
                 byte[] data = MessagePackSerializer.Deserialize<byte[]>(FrameData, LZ4_OPTIONS);
-                Marshal.Copy(data, 0, _frame.Data, data.Length);
+                _frame = Cv2.ImDecode(data, ImreadModes.Color);
 
                 return _frame;
             }
@@ -67,9 +65,11 @@ namespace ProjectReinforced.Recording
         private int FrameWidth { get; }
         private int FrameHeight { get; }
 
-        public ScreenCaptured(Bitmap frame, Size frameSize, long elapsedMilliseconds)
+        public ScreenCaptured(Mat frame, Size frameSize, long elapsedMilliseconds)
         {
-            FrameData = MessagePackSerializer.Serialize(frame.ToArray(), LZ4_OPTIONS);
+            byte[] data = frame.ToBytes(".jpg");
+
+            FrameData = MessagePackSerializer.Serialize(data, LZ4_OPTIONS);
             FrameWidth = frame.Width;
             FrameHeight = frame.Height;
             FrameSize = frameSize;

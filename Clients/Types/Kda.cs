@@ -1,4 +1,4 @@
-﻿namespace ProjectReinforced.Clients
+﻿namespace ProjectReinforced.Clients.Types
 {
     public class Kda
     {

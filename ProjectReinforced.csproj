@@ -179,7 +179,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Clients\Kda.cs" />
+    <Compile Include="Clients\Types\Kda.cs" />
     <Compile Include="Clients\Lol\GameflowPhaseType.cs" />
     <Compile Include="Clients\Lol\LolLiveEvent.cs" />
     <Compile Include="Clients\Lol\LolSummoner.cs" />
@@ -190,12 +190,12 @@
     <Compile Include="Others\ExceptionManager.cs" />
     <Compile Include="Others\Win32.cs" />
     <Compile Include="Recording\Audio.cs" />
-    <Compile Include="Recording\Highlight.cs" />
-    <Compile Include="Recording\HighlightInfo.cs" />
+    <Compile Include="Recording\Types\Highlight.cs" />
+    <Compile Include="Recording\Types\HighlightInfo.cs" />
     <Compile Include="Recording\HighlightManager.cs" />
     <Compile Include="Recording\Screen.cs" />
-    <Compile Include="Recording\ScreenCaptured.cs" />
-    <Compile Include="Types\GameType.cs" />
+    <Compile Include="Recording\Types\ScreenCaptured.cs" />
+    <Compile Include="Clients\Types\GameType.cs" />
     <Page Include="GetStarted.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

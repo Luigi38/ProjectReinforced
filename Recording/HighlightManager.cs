@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using ProjectReinforced.Types;
+using ProjectReinforced.Clients.Types;
+using ProjectReinforced.Recording.Types;
 
 namespace ProjectReinforced.Recording
 {
