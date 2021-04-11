@@ -28,6 +28,8 @@ namespace ProjectReinforced.Recording
         private static Queue<WaveInEventArgs> _sounds = new Queue<WaveInEventArgs>();
         private static Queue<WaveInEventArgs> _soundsMic = new Queue<WaveInEventArgs>();
 
+        private static DateTime _startTime;
+
         /// <summary>
         /// 기본 마이크 장치
         /// </summary>
@@ -185,6 +187,8 @@ namespace ProjectReinforced.Recording
                 _captureMic.StartRecording();
             }
 
+            _startTime = DateTime.Now;
+
             return true;
         }
 
@@ -220,6 +224,7 @@ namespace ProjectReinforced.Recording
             }
 
             var includeMic = _captureMic != null && _captureMic.CaptureState == CaptureState.Capturing;
+            var deltaTime = DateTime.Now - _startTime;
 
             //소리 녹음 중지
             _capture.StopRecording();
@@ -231,7 +236,7 @@ namespace ProjectReinforced.Recording
             //마이크까지 녹음이 된 경우
             if (includeMic)
             {
-                await MergeMp3(_sounds, _soundsMic, _capture.WaveFormat, path);
+                await MergeMp3(_sounds, _soundsMic, _capture.WaveFormat, deltaTime, path);
             }
             else
             {
@@ -256,17 +261,17 @@ namespace ProjectReinforced.Recording
         /// <param name="data2">소리 데이터 2</param>
         /// <param name="wf">소리 데이터 1의 WaveFormat</param>
         /// <param name="outPath">한 파일로 합칠 파일 경로</param>
-        public static async Task MergeMp3(Queue<WaveInEventArgs> data1, Queue<WaveInEventArgs> data2, WaveFormat wf, string outPath)
+        public static async Task MergeMp3(Queue<WaveInEventArgs> data1, Queue<WaveInEventArgs> data2, WaveFormat wf, TimeSpan time, string outPath)
         {
             var bwp1 = new BufferedWaveProvider(wf)
             {
                 DiscardOnBufferOverflow = true,
-                BufferDuration = TimeSpan.FromMinutes(3)
+                BufferDuration = time
             };
             var bwp2 = new BufferedWaveProvider(wf)
             {
                 DiscardOnBufferOverflow = true,
-                BufferDuration = TimeSpan.FromMinutes(3)
+                BufferDuration = time
             };
 
             var msp = new MixingSampleProvider(wf);
@@ -311,6 +316,9 @@ namespace ProjectReinforced.Recording
 
                 await writer.WriteAsync(buffer, 0, bufferLength);
             }
+
+            bwp1.ClearBuffer();
+            bwp2.ClearBuffer();
         }
     }
 }

@@ -27,17 +27,22 @@ namespace ProjectReinforced.Recording.Types
         /// <summary>
         /// 현재 프레임 데이터
         /// </summary>
-        private byte[] FrameData { get; set; }
-
-        /// <summary>
-        /// 프레임을 재사용할 횟수. 기본값은 1
-        /// </summary>
-        public int CountToUse { get; set; }
+        private byte[] FrameData { get; }
         
         /// <summary>
-        /// 걸린 시간 (ms)
+        /// 현재 프레임의 원하는 크기
         /// </summary>
-        public long ElapsedMilliseconds { get; set; }
+        public Size FrameSize { get; }
+
+        /// <summary>
+        /// 시작한 시간
+        /// </summary>
+        public DateTime NowStart { get; set; }
+
+        /// <summary>
+        /// 끝난 시간
+        /// </summary>
+        public DateTime NowEnd { get; set; }
 
         private Mat _frame;
 
@@ -60,23 +65,14 @@ namespace ProjectReinforced.Recording.Types
             }
         }
 
-        public Size FrameSize { get; }
-
-        public ScreenCaptured(Mat frame, Size frameSize, long elapsedMilliseconds)
+        public ScreenCaptured(Mat frame, Size frameSize, DateTime time)
         {
-            byte[] data = frame.ToBytes(".jpg", new[] { (int)ImwriteFlags.JpegQuality, 50 });
+            byte[] data = frame.ToBytes(".jpg");
 
             FrameData = MessagePackSerializer.Serialize(data, LZ4_OPTIONS);
             FrameSize = frameSize;
 
-            ElapsedMilliseconds = elapsedMilliseconds;
-            CountToUse = 0;
-        }
-
-        public int GetCountToUseByElapsed(int fps)
-        {
-            int delay = 1000 / fps;
-            return Math.Max((int)ElapsedMilliseconds / delay, 1); //스크린샷을 하는 데 걸린 시간을 기준으로 재활용 값 설정
+            NowStart = time;
         }
     }
 }
