@@ -62,16 +62,11 @@ namespace ProjectReinforced.Recording.Types
 
         public Size FrameSize { get; }
 
-        private int FrameWidth { get; }
-        private int FrameHeight { get; }
-
         public ScreenCaptured(Mat frame, Size frameSize, long elapsedMilliseconds)
         {
-            byte[] data = frame.ToBytes(".jpg");
+            byte[] data = frame.ToBytes(".jpg", new[] { (int)ImwriteFlags.JpegQuality, 50 });
 
             FrameData = MessagePackSerializer.Serialize(data, LZ4_OPTIONS);
-            FrameWidth = frame.Width;
-            FrameHeight = frame.Height;
             FrameSize = frameSize;
 
             ElapsedMilliseconds = elapsedMilliseconds;
